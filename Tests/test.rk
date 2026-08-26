@@ -60,7 +60,10 @@ let int x = 0x31091 + 0b101010 + 0o755 + 0z2309 + 123_456_789;
 // generics but I ruined it
 let x<x<x>, x<x>> x = 1
 let x<x<x<x>, x<x>>> x = 1
-let X<x <x<x>, x<x>>><x<x :> str, x<x:>int>> x = 1
+let x<x :> str> x<x :> int> x = 1
+let x<x<x<x>>> x = 1
+let x<x<x<x<x>>>> x = 1
+let x<x<x<x<x<x>>>>> x = 1
 
 // style DSL example
 style `style` {

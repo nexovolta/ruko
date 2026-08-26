@@ -157,7 +157,7 @@ atomic let flag = false
 
 // ----- Function behaviour modifiers -----
 pure func int square(int n) { n * n }
-async func loadFile(str path): str { await readFile(path) }
+async func str loadFile(str path) { await readFile(path) }
 rec func int fib(int n) { if n <= 1: n else fib(n-1) + fib(n-2) }
 gen func int* range(int n) { for let i in 0 ..< n: yield i }
 inline func int inc(int n) { n + 1 }
@@ -214,7 +214,7 @@ let (y: int | str, str b2, f64 c2) = (42, "hello", 3.14)
 %endif
 
 %ifndef RELEASE
-  %warning "Building in non-release mode"
+  %warning Building in non-release mode
 %endif
 
 %if VERSION >= 2

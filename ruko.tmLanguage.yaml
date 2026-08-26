@@ -500,17 +500,15 @@ repository:
                 )
                 (?:
                   < # generics
-                    \g<0> # either recurse or match balanced brackets
-                    | [^'"`()\[\]{}]* # or match non-delimiter characters
-                    # (?:
-                    #     \g<0> # either recurse or match balanced generics
-                    #   | \s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-                    #       (?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?
-                    #     )\s # infix type operators with spaces
-                    #   | [^'"`<>()\[\]{}]+ # anything that isn't a delimiter
-                    # )*
+                    (?:
+                        \g<0> # either recurse or match balanced generics
+                      | \s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                          (?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?
+                        )\s # infix type operators with spaces
+                      | [^'"`<>()\[\]{}]+ # anything that isn't a delimiter
+                    )*
                   >
-                )?
+                )*
 
               | (?:
                   \#?\( # round brackets
@@ -605,17 +603,15 @@ repository:
                 )
                 (?:
                   < # generics
-                    \g<0> # either recurse or match balanced brackets
-                    | [^'"`()\[\]{}]* # or match non-delimiter characters
-                    # (?:
-                    #     \g<0> # either recurse or match balanced generics
-                    #   | \s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
-                    #       (?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?
-                    #     )\s # infix type operators with spaces
-                    #   | [^'"`<>()\[\]{}]+ # anything that isn't a delimiter
-                    # )*
+                    (?:
+                        \g<0> # either recurse or match balanced generics
+                      | \s(?:[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+
+                          (?:[\p{P}\p{S}]*[\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+)?
+                        )\s # infix type operators with spaces
+                      | [^'"`<>()\[\]{}]+ # anything that isn't a delimiter
+                    )*
                   >
-                )?
+                )*
 
               | (?:
                   \#?\( # round brackets
@@ -689,7 +685,7 @@ repository:
     comment: 'These are just straight-up copied from C/C++ but with % instead of #'
     patterns:
       - applyEndPatternLast: true
-        begin: ^\s*(%)(if|else|end|ifn?def|elifn?def|endif)\b
+        begin: ^\s*(%)(if|elif|else|end|ifn?def|elifn?def|endif)\b
         end: $
         name: meta.directive.ruko
         captures:
