@@ -1,0 +1,775 @@
+[buildPlans.Nexsevka]
+family = "Nexsevka"
+spacing = "term"
+serifs = "sans"
+noCvSs = true
+exportGlyphNames = true
+
+[buildPlans.Nexsevka.variants.design]
+one = "base-flat-top-serif"
+two = "curly-neck-serifless"
+three = "flat-top-serifless"
+four = "open-non-crossing-serifless"
+five = "oblique-flat-hook-serifless"
+six = "closed-contour"
+seven = "bend-serifed-crossbar"
+eight = "crossing-asymmetric"
+nine = "straight-bar"
+zero = "diamond-broken-vertical-bar"
+capital-a = "straight-top-serifed"
+capital-b = "more-asymmetric-unilateral-serifed"
+capital-c = "unilateral-serifed"
+capital-d = "more-rounded-unilateral-serifed"
+capital-e = "top-left-serifed"
+capital-f = "top-left-serifed"
+capital-g = "toothless-rounded-serifless-capped"
+capital-h = "top-left-bottom-right-serifed"
+capital-i = "serifed"
+capital-j = "descending-flat-hook-serifed"
+capital-k = "straight-top-left-and-bottom-right-serifed"
+capital-l = "motion-serifed"
+capital-m = "slanted-sides-flat-bottom-motion-serifed"
+capital-n = "asymmetric-motion-serifed"
+capital-p = "closed-motion-serifed"
+capital-q = "detached-bend-tailed"
+capital-r = "straight-open-top-left-and-bottom-right-serifed"
+capital-s = "bilateral-serifed"
+capital-t = "motion-serifed"
+capital-u = "flat-bottom-motion-serifed"
+capital-v = "straight-serifless"
+capital-w = "straight-vertical-sides-flat-top-serifless"
+capital-x = "straight-serifless"
+capital-y = "straight-base-serifed"
+capital-z = "straight-top-serifed-with-crossbar"
+a = "double-storey-flat-bottom-serifless"
+b = "toothless-corner-serifed"
+c = "unilateral-inward-serifed"
+d = "flat-bottom-top-serifed"
+e = "flat-crossbar"
+f = "flat-hook-serifless-crossbar-at-half-ascender-height"
+g = "double-storey-open"
+h = "straight-top-left-serifed"
+i = "serifed-asymmetric"
+j = "hooky"
+k = "straight-top-left-and-bottom-right-serifed"
+l = "zshaped"
+m = "flat-top-short-leg-top-left-serifed"
+n = "flat-top-straight-top-left-serifed"
+p = "flat-top-motion-serifed"
+q = "flat-top-straight-motion-bottom-serifed"
+r = "corner-hooked-top-serifed"
+s = "bilateral-inward-serifed"
+t = "flat-hook-asymmetric-short-neck2"
+u = "toothless-corner-motion-serifed"
+v = "straight-motion-serifed"
+w = "straight-motion-serifed"
+x = "straight-bilateral-motion-serifed"
+y = "straight-motion-serifed"
+z = "straight-top-serifed"
+capital-eszet = "corner-motion-serifed"
+long-s = "flat-hook-double-serifed-half-ascender"
+eszet = "traditional-flat-hook-middle-serifed"
+lower-eth = "straight-bar"
+capital-thorn = "motion-serifed"
+lower-thorn = "motion-serifed"
+lower-alpha = "barred-earless-corner"
+lower-beta = "cursive"
+capital-gamma = "top-right-serifed"
+lower-gamma = "straight-serifed"
+capital-delta = "straight"
+lower-delta = "flat-top"
+lower-eta = "flat-top-motion-serifed"
+lower-theta = "diamond"
+lower-iota = "zshaped"
+lower-kappa = "symmetric-touching-top-left-and-bottom-right-serifed"
+capital-lambda = "straight-top-serifed"
+lower-lambda = "straight-turn"
+lower-mu = "flat-bottom-serifed"
+lower-nu = "straight-serifed"
+lower-xi = "flat-top"
+lower-pi = "tailless"
+lower-tau = "short-tailed"
+lower-upsilon = "straight-serifed"
+lower-phi = "neo-hellenic"
+lower-chi = "straight-bilateral-motion-serifed"
+lower-psi = "flat-top-serifed"
+partial-derivative = "straight-bar"
+cyrl-a = "double-storey-flat-bottom-serifless"
+cyrl-ve = "standard-unilateral-serifed"
+cyrl-capital-zhe = "symmetric-touching"
+cyrl-zhe = "symmetric-touching"
+cyrl-capital-ze = "unilateral-bottom-serifed"
+cyrl-ze = "unilateral-bottom-inward-serifed"
+cyrl-capital-ka = "symmetric-connected-top-left-and-bottom-right-serifed"
+cyrl-ka = "symmetric-connected-top-left-and-bottom-right-serifed"
+cyrl-el = "straight"
+cyrl-em = "slanted-sides-hanging-motion-serifed"
+cyrl-capital-en = "top-left-bottom-right-serifed"
+cyrl-en = "top-left-bottom-right-serifed"
+cyrl-capital-er = "closed-motion-serifed"
+cyrl-er = "flat-top-motion-serifed"
+cyrl-capital-u = "straight-turn-motion-serifed"
+cyrl-u = "straight-motion-serifed"
+cyrl-ef = "serifed"
+cyrl-che = "standard"
+cyrl-yeri = "round"
+cyrl-yery = "round"
+cyrl-capital-e = "unilateral-inward-serifed"
+cyrl-e = "unilateral-inward-serifed"
+cyrl-capital-ya = "straight-open-serifless"
+cyrl-ya = "straight-open-serifless"
+tittle = "round"
+diacritic-dot = "square"
+punctuation-dot = "square"
+braille-dot = "round"
+tilde = "low"
+asterisk = "turn-penta-low"
+underscore = "above-baseline"
+caret = "low"
+ascii-grave = "straight"
+ascii-single-quote = "straight"
+paren = "flat-arc"
+brace = "curly-flat-boundary"
+guillemet = "straight"
+number-sign = "slanted-open"
+ampersand = "upper-open"
+at = "compact"
+dollar = "slanted-interrupted-cap"
+cent = "slanted-bar-interrupted-cap"
+percent = "rings-segmented-slash"
+bar = "force-upright"
+question = "corner"
+pilcrow = "curved"
+micro-sign = "flat-bottom-serifed"
+decorative-angle-brackets = "tall"
+lig-ltgteq = "slanted"
+lig-neq = "more-slanted-dotted"
+lig-equal-chain = "with-notch"
+lig-hyphen-chain = "with-notch"
+lig-plus-chain = "with-notch"
+lig-double-arrow-bar = "with-notch"
+lig-single-arrow-bar = "with-notch"
+
+[buildPlans.Nexsevka.variants.italic]
+one = "base-flat-top-serif"
+two = "curly-neck-serifless"
+three = "flat-top-serifless"
+four = "open-non-crossing-serifless"
+five = "oblique-flat-hook-serifless"
+six = "closed-contour"
+seven = "bend-serifed-crossbar"
+eight = "crossing-asymmetric"
+nine = "straight-bar"
+zero = "diamond-broken-reverse-slash"
+capital-a = "curly-top-serifed"
+capital-b = "more-asymmetric-unilateral-serifed"
+capital-c = "unilateral-serifed"
+capital-d = "more-rounded-unilateral-serifed"
+capital-e = "top-left-serifed"
+capital-f = "top-left-serifed"
+capital-g = "toothless-rounded-serifless-hookless"
+capital-h = "top-left-bottom-right-serifed"
+capital-i = "serifed"
+capital-j = "descending-flat-hook-serifed"
+capital-k = "curly-top-left-and-bottom-right-serifed"
+capital-l = "motion-serifed"
+capital-m = "flat-bottom-motion-serifed"
+capital-n = "asymmetric-motion-serifed"
+capital-p = "closed-motion-serifed"
+capital-q = "open-swash"
+capital-r = "curly-open-top-left-and-bottom-right-serifed"
+capital-s = "bilateral-serifed"
+capital-t = "motion-serifed"
+capital-u = "flat-bottom-motion-serifed"
+capital-v = "curly-serifless"
+capital-w = "straight-vertical-sides-flat-top-serifless"
+capital-x = "curly-serifless"
+capital-y = "curly-base-serifed"
+capital-z = "curly-top-serifed-with-crossbar"
+a = "single-storey-flat-top-tailed"
+b = "toothless-corner-serifed"
+c = "unilateral-inward-serifed"
+d = "flat-bottom-serifed"
+e = "rounded"
+f = "flat-hook-diagonal-tailed-crossbar-at-half-ascender-height"
+g = "single-storey-flat-hook-flat-top-serifed"
+h = "tailed-motion-serifed"
+i = "serifed-semi-tailed"
+j = "diagonal-tailed-serifed"
+k = "cursive-top-left-and-bottom-right-serifed"
+l = "serifed-semi-tailed"
+m = "flat-top-short-leg-tailed-top-left-serifed"
+n = "flat-top-tailed-motion-serifed"
+p = "flat-top-motion-serifed"
+q = "flat-top-straight-motion-bottom-serifed"
+r = "flat-top-top-serifed"
+s = "bilateral-inward-serifed"
+t = "diagonal-tailed-asymmetric-short-neck2"
+u = "flat-bottom-serifed"
+v = "curly-motion-serifed"
+w = "cursive-serifed"
+x = "chancery"
+y = "cursive-flat-hook-serifed"
+z = "cursive"
+capital-eszet = "corner-motion-serifed"
+long-s = "flat-hook-diagonal-tailed-middle-serifed-half-ascender"
+eszet = "traditional-flat-hook-middle-serifed"
+lower-eth = "curly-bar"
+capital-thorn = "motion-serifed"
+lower-thorn = "motion-serifed"
+lower-alpha = "crossing"
+lower-beta = "standard"
+capital-gamma = "top-right-serifed"
+lower-gamma = "casual-serifed"
+capital-delta = "curly"
+lower-delta = "rounded"
+lower-eta = "flat-top-motion-serifed"
+lower-theta = "cursive"
+lower-iota = "serifed-semi-tailed"
+lower-kappa = "symmetric-touching-top-left-and-bottom-right-serifed"
+capital-lambda = "curly-top-serifed"
+lower-lambda = "curly-tailed-turn"
+lower-mu = "flat-bottom-serifed"
+lower-nu = "casual-serifed"
+lower-xi = "rounded"
+lower-pi = "tailed"
+lower-tau = "diagonal-tailed"
+lower-upsilon = "casual-serifed"
+lower-phi = "straight-short-neck2"
+lower-chi = "chancery"
+lower-psi = "short-neck2-serifed"
+partial-derivative = "curly-bar"
+cyrl-a = "single-storey-flat-top-tailed"
+cyrl-ve = "cursive"
+cyrl-capital-zhe = "cursive"
+cyrl-zhe = "cursive"
+cyrl-capital-ze = "unilateral-bottom-serifed"
+cyrl-ze = "unilateral-bottom-inward-serifed"
+cyrl-capital-ka = "symmetric-connected-top-left-and-bottom-right-serifed"
+cyrl-ka = "symmetric-connected-top-left-and-bottom-right-serifed"
+cyrl-el = "tailed"
+cyrl-em = "slanted-sides-hanging-motion-serifed"
+cyrl-capital-en = "top-left-bottom-right-serifed"
+cyrl-en = "tailed-top-left-serifed"
+cyrl-capital-er = "closed-motion-serifed"
+cyrl-er = "flat-top-motion-serifed"
+cyrl-capital-u = "curly-turn-motion-serifed"
+cyrl-u = "cursive-flat-hook-serifed"
+cyrl-ef = "diagonal-tailed-cursive"
+cyrl-che = "tailed"
+cyrl-yeri = "round"
+cyrl-yery = "round-tailed"
+cyrl-capital-e = "unilateral-inward-serifed"
+cyrl-e = "unilateral-inward-serifed"
+cyrl-capital-ya = "curly-open-serifless"
+cyrl-ya = "standing-open-tailed-serifless"
+tittle = "round"
+diacritic-dot = "square"
+punctuation-dot = "square"
+braille-dot = "round"
+tilde = "low"
+asterisk = "turn-penta-low"
+underscore = "above-baseline"
+caret = "low"
+ascii-grave = "straight"
+ascii-single-quote = "straight"
+paren = "flat-arc"
+brace = "curly-flat-boundary"
+guillemet = "straight"
+number-sign = "slanted-open"
+ampersand = "upper-open"
+at = "compact"
+dollar = "slanted-interrupted-cap"
+cent = "slanted-bar-interrupted-cap"
+percent = "rings-segmented-slash"
+bar = "force-upright"
+question = "corner"
+pilcrow = "curved"
+micro-sign = "flat-bottom-serifed"
+decorative-angle-brackets = "tall"
+lig-ltgteq = "slanted"
+lig-neq = "more-slanted-dotted"
+lig-equal-chain = "with-notch"
+lig-hyphen-chain = "with-notch"
+lig-plus-chain = "with-notch"
+lig-double-arrow-bar = "with-notch"
+lig-single-arrow-bar = "with-notch"
+
+[buildPlans.Nexsevka.ligations]
+inherits = "dlig"
+
+[buildPlans.Nexsevka.weights.Regular]
+shape = 400
+menu = 400
+css = 400
+
+[buildPlans.Nexsevka.weights.Bold]
+shape = 700
+menu = 700
+css = 700
+
+[buildPlans.Nexsevka.weights.Thin]
+shape = 100
+menu = 100
+css = 100
+
+[buildPlans.Nexsevka.weights.ExtraLight]
+shape = 200
+menu = 200
+css = 200
+
+[buildPlans.Nexsevka.weights.Light]
+shape = 300
+menu = 300
+css = 300
+
+[buildPlans.Nexsevka.weights.Medium]
+shape = 500
+menu = 500
+css = 500
+
+[buildPlans.Nexsevka.weights.SemiBold]
+shape = 600
+menu = 600
+css = 600
+
+[buildPlans.Nexsevka.weights.ExtraBold]
+shape = 800
+menu = 800
+css = 800
+
+[buildPlans.Nexsevka.weights.Heavy]
+shape = 900
+menu = 900
+css = 900
+
+[buildPlans.Nexsevka.widths.Normal]
+shape = 500
+menu = 5
+css = "normal"
+
+[buildPlans.Nexsevka.slopes.Upright]
+angle = 0
+shape = "upright"
+menu = "upright"
+css = "normal"
+
+[buildPlans.Nexsevka.slopes.Italic]
+angle = 12
+shape = "italic"
+menu = "italic"
+css = "italic"
+
+[buildPlans.Nexsevka.metricOverride]
+xHeight = 500
+cap = 700
+ascender = 750
+sb = 75
+
+accentWidth = 200
+accentClearance = 100
+accentHeight = 150
+accentStackOffset = 200
+
+leading = 1250
+parenSize = 850
+dotSize = "blend(weight, [100, 110], [400, 125], [900, 150])"
+periodSize = 150
+
+onumZeroHeightRatio = 1
+
+essRatio = 1
+essRatioUpper = 1
+essRatioLower = 1
+essRatioQuestion = 1
+archDepth = 225
+smallArchDepth = 175
+
+#####################################################################################################
+
+[buildPlans.NexsevkaPropo]
+family = "Nexsevka Propo"
+spacing = "quasi-proportional"
+serifs = "sans"
+noCvSs = true
+exportGlyphNames = true
+
+[buildPlans.NexsevkaPropo.variants.design]
+one = "base-flat-top-serif"
+two = "curly-neck-serifless"
+three = "flat-top-serifless"
+four = "open-non-crossing-serifless"
+five = "oblique-flat-hook-serifless"
+six = "closed-contour"
+seven = "bend-serifed-crossbar"
+eight = "crossing-asymmetric"
+nine = "straight-bar"
+zero = "diamond-broken-vertical-bar"
+capital-a = "straight-top-serifed"
+capital-b = "more-asymmetric-unilateral-serifed"
+capital-c = "unilateral-serifed"
+capital-d = "more-rounded-unilateral-serifed"
+capital-e = "top-left-serifed"
+capital-f = "top-left-serifed"
+capital-g = "toothless-rounded-serifless-capped"
+capital-h = "top-left-bottom-right-serifed"
+capital-i = "serifed"
+capital-j = "descending-flat-hook-serifed"
+capital-k = "straight-top-left-and-bottom-right-serifed"
+capital-l = "motion-serifed"
+capital-m = "slanted-sides-flat-bottom-motion-serifed"
+capital-n = "asymmetric-motion-serifed"
+capital-p = "closed-motion-serifed"
+capital-q = "detached-bend-tailed"
+capital-r = "straight-open-top-left-and-bottom-right-serifed"
+capital-s = "bilateral-serifed"
+capital-t = "motion-serifed"
+capital-u = "flat-bottom-motion-serifed"
+capital-v = "straight-serifless"
+capital-w = "straight-vertical-sides-flat-top-serifless"
+capital-x = "straight-serifless"
+capital-y = "straight-base-serifed"
+capital-z = "straight-top-serifed-with-crossbar"
+a = "double-storey-flat-bottom-serifless"
+b = "toothless-corner-serifed"
+c = "unilateral-inward-serifed"
+d = "flat-bottom-top-serifed"
+e = "flat-crossbar"
+f = "flat-hook-serifless-crossbar-at-half-ascender-height"
+g = "double-storey-open"
+h = "straight-top-left-serifed"
+i = "serifed-asymmetric"
+j = "hooky"
+k = "straight-top-left-and-bottom-right-serifed"
+l = "zshaped"
+m = "flat-top-short-leg-top-left-serifed"
+n = "flat-top-straight-top-left-serifed"
+p = "flat-top-motion-serifed"
+q = "flat-top-straight-motion-bottom-serifed"
+r = "corner-hooked-top-serifed"
+s = "bilateral-inward-serifed"
+t = "flat-hook-asymmetric-short-neck2"
+u = "toothless-corner-motion-serifed"
+v = "straight-motion-serifed"
+w = "straight-motion-serifed"
+x = "straight-bilateral-motion-serifed"
+y = "straight-motion-serifed"
+z = "straight-top-serifed"
+capital-eszet = "corner-motion-serifed"
+long-s = "flat-hook-double-serifed-half-ascender"
+eszet = "traditional-flat-hook-middle-serifed"
+lower-eth = "straight-bar"
+capital-thorn = "motion-serifed"
+lower-thorn = "motion-serifed"
+lower-alpha = "barred-earless-corner"
+lower-beta = "cursive"
+capital-gamma = "top-right-serifed"
+lower-gamma = "straight-serifed"
+capital-delta = "straight"
+lower-delta = "flat-top"
+lower-eta = "flat-top-motion-serifed"
+lower-theta = "diamond"
+lower-iota = "zshaped"
+lower-kappa = "symmetric-touching-top-left-and-bottom-right-serifed"
+capital-lambda = "straight-top-serifed"
+lower-lambda = "straight-turn"
+lower-mu = "flat-bottom-serifed"
+lower-nu = "straight-serifed"
+lower-xi = "flat-top"
+lower-pi = "tailless"
+lower-tau = "short-tailed"
+lower-upsilon = "straight-serifed"
+lower-phi = "neo-hellenic"
+lower-chi = "straight-bilateral-motion-serifed"
+lower-psi = "flat-top-serifed"
+partial-derivative = "straight-bar"
+cyrl-a = "double-storey-flat-bottom-serifless"
+cyrl-ve = "standard-unilateral-serifed"
+cyrl-capital-zhe = "symmetric-touching"
+cyrl-zhe = "symmetric-touching"
+cyrl-capital-ze = "unilateral-bottom-serifed"
+cyrl-ze = "unilateral-bottom-inward-serifed"
+cyrl-capital-ka = "symmetric-connected-top-left-and-bottom-right-serifed"
+cyrl-ka = "symmetric-connected-top-left-and-bottom-right-serifed"
+cyrl-el = "straight"
+cyrl-em = "slanted-sides-hanging-motion-serifed"
+cyrl-capital-en = "top-left-bottom-right-serifed"
+cyrl-en = "top-left-bottom-right-serifed"
+cyrl-capital-er = "closed-motion-serifed"
+cyrl-er = "flat-top-motion-serifed"
+cyrl-capital-u = "straight-turn-motion-serifed"
+cyrl-u = "straight-motion-serifed"
+cyrl-ef = "serifed"
+cyrl-che = "standard"
+cyrl-yeri = "round"
+cyrl-yery = "round"
+cyrl-capital-e = "unilateral-inward-serifed"
+cyrl-e = "unilateral-inward-serifed"
+cyrl-capital-ya = "straight-open-serifless"
+cyrl-ya = "straight-open-serifless"
+tittle = "round"
+diacritic-dot = "square"
+punctuation-dot = "square"
+braille-dot = "round"
+tilde = "low"
+asterisk = "turn-penta-low"
+underscore = "above-baseline"
+caret = "low"
+ascii-grave = "straight"
+ascii-single-quote = "straight"
+paren = "flat-arc"
+brace = "curly-flat-boundary"
+guillemet = "straight"
+number-sign = "slanted-open"
+ampersand = "upper-open"
+at = "compact"
+dollar = "slanted-interrupted-cap"
+cent = "slanted-bar-interrupted-cap"
+percent = "rings-segmented-slash"
+bar = "force-upright"
+question = "corner"
+pilcrow = "curved"
+micro-sign = "flat-bottom-serifed"
+decorative-angle-brackets = "tall"
+lig-ltgteq = "slanted"
+lig-neq = "more-slanted-dotted"
+lig-equal-chain = "with-notch"
+lig-hyphen-chain = "with-notch"
+lig-plus-chain = "with-notch"
+lig-double-arrow-bar = "with-notch"
+lig-single-arrow-bar = "with-notch"
+
+[buildPlans.NexsevkaPropo.variants.italic]
+one = "base-flat-top-serif"
+two = "curly-neck-serifless"
+three = "flat-top-serifless"
+four = "open-non-crossing-serifless"
+five = "oblique-flat-hook-serifless"
+six = "closed-contour"
+seven = "bend-serifed-crossbar"
+eight = "crossing-asymmetric"
+nine = "straight-bar"
+zero = "diamond-broken-reverse-slash"
+capital-a = "curly-top-serifed"
+capital-b = "more-asymmetric-unilateral-serifed"
+capital-c = "unilateral-serifed"
+capital-d = "more-rounded-unilateral-serifed"
+capital-e = "top-left-serifed"
+capital-f = "top-left-serifed"
+capital-g = "toothless-rounded-serifless-hookless"
+capital-h = "top-left-bottom-right-serifed"
+capital-i = "serifed"
+capital-j = "descending-flat-hook-serifed"
+capital-k = "curly-top-left-and-bottom-right-serifed"
+capital-l = "motion-serifed"
+capital-m = "flat-bottom-motion-serifed"
+capital-n = "asymmetric-motion-serifed"
+capital-p = "closed-motion-serifed"
+capital-q = "open-swash"
+capital-r = "curly-open-top-left-and-bottom-right-serifed"
+capital-s = "bilateral-serifed"
+capital-t = "motion-serifed"
+capital-u = "flat-bottom-motion-serifed"
+capital-v = "curly-serifless"
+capital-w = "straight-vertical-sides-flat-top-serifless"
+capital-x = "curly-serifless"
+capital-y = "curly-base-serifed"
+capital-z = "curly-top-serifed-with-crossbar"
+a = "single-storey-flat-top-tailed"
+b = "toothless-corner-serifed"
+c = "unilateral-inward-serifed"
+d = "flat-bottom-serifed"
+e = "rounded"
+f = "flat-hook-diagonal-tailed-crossbar-at-half-ascender-height"
+g = "single-storey-flat-hook-flat-top-serifed"
+h = "tailed-motion-serifed"
+i = "serifed-semi-tailed"
+j = "diagonal-tailed-serifed"
+k = "cursive-top-left-and-bottom-right-serifed"
+l = "serifed-semi-tailed"
+m = "flat-top-short-leg-tailed-top-left-serifed"
+n = "flat-top-tailed-motion-serifed"
+p = "flat-top-motion-serifed"
+q = "flat-top-straight-motion-bottom-serifed"
+r = "flat-top-top-serifed"
+s = "bilateral-inward-serifed"
+t = "diagonal-tailed-asymmetric-short-neck2"
+u = "flat-bottom-serifed"
+v = "curly-motion-serifed"
+w = "cursive-serifed"
+x = "chancery"
+y = "cursive-flat-hook-serifed"
+z = "cursive"
+capital-eszet = "corner-motion-serifed"
+long-s = "flat-hook-diagonal-tailed-middle-serifed-half-ascender"
+eszet = "traditional-flat-hook-middle-serifed"
+lower-eth = "curly-bar"
+capital-thorn = "motion-serifed"
+lower-thorn = "motion-serifed"
+lower-alpha = "crossing"
+lower-beta = "standard"
+capital-gamma = "top-right-serifed"
+lower-gamma = "casual-serifed"
+capital-delta = "curly"
+lower-delta = "rounded"
+lower-eta = "flat-top-motion-serifed"
+lower-theta = "cursive"
+lower-iota = "serifed-semi-tailed"
+lower-kappa = "symmetric-touching-top-left-and-bottom-right-serifed"
+capital-lambda = "curly-top-serifed"
+lower-lambda = "curly-tailed-turn"
+lower-mu = "flat-bottom-serifed"
+lower-nu = "casual-serifed"
+lower-xi = "rounded"
+lower-pi = "tailed"
+lower-tau = "diagonal-tailed"
+lower-upsilon = "casual-serifed"
+lower-phi = "straight-short-neck2"
+lower-chi = "chancery"
+lower-psi = "short-neck2-serifed"
+partial-derivative = "curly-bar"
+cyrl-a = "single-storey-flat-top-tailed"
+cyrl-ve = "cursive"
+cyrl-capital-zhe = "cursive"
+cyrl-zhe = "cursive"
+cyrl-capital-ze = "unilateral-bottom-serifed"
+cyrl-ze = "unilateral-bottom-inward-serifed"
+cyrl-capital-ka = "symmetric-connected-top-left-and-bottom-right-serifed"
+cyrl-ka = "symmetric-connected-top-left-and-bottom-right-serifed"
+cyrl-el = "tailed"
+cyrl-em = "slanted-sides-hanging-motion-serifed"
+cyrl-capital-en = "top-left-bottom-right-serifed"
+cyrl-en = "tailed-top-left-serifed"
+cyrl-capital-er = "closed-motion-serifed"
+cyrl-er = "flat-top-motion-serifed"
+cyrl-capital-u = "curly-turn-motion-serifed"
+cyrl-u = "cursive-flat-hook-serifed"
+cyrl-ef = "diagonal-tailed-cursive"
+cyrl-che = "tailed"
+cyrl-yeri = "round"
+cyrl-yery = "round-tailed"
+cyrl-capital-e = "unilateral-inward-serifed"
+cyrl-e = "unilateral-inward-serifed"
+cyrl-capital-ya = "curly-open-serifless"
+cyrl-ya = "standing-open-tailed-serifless"
+tittle = "round"
+diacritic-dot = "square"
+punctuation-dot = "square"
+braille-dot = "round"
+tilde = "low"
+asterisk = "turn-penta-low"
+underscore = "above-baseline"
+caret = "low"
+ascii-grave = "straight"
+ascii-single-quote = "straight"
+paren = "flat-arc"
+brace = "curly-flat-boundary"
+guillemet = "straight"
+number-sign = "slanted-open"
+ampersand = "upper-open"
+at = "compact"
+dollar = "slanted-interrupted-cap"
+cent = "slanted-bar-interrupted-cap"
+percent = "rings-segmented-slash"
+bar = "force-upright"
+question = "corner"
+pilcrow = "curved"
+micro-sign = "flat-bottom-serifed"
+decorative-angle-brackets = "tall"
+lig-ltgteq = "slanted"
+lig-neq = "more-slanted-dotted"
+lig-equal-chain = "with-notch"
+lig-hyphen-chain = "with-notch"
+lig-plus-chain = "with-notch"
+lig-double-arrow-bar = "with-notch"
+lig-single-arrow-bar = "with-notch"
+
+[buildPlans.NexsevkaPropo.ligations]
+inherits = "dlig"
+
+[buildPlans.NexsevkaPropo.weights.Regular]
+shape = 400
+menu = 400
+css = 400
+
+[buildPlans.NexsevkaPropo.weights.Bold]
+shape = 700
+menu = 700
+css = 700
+
+[buildPlans.NexsevkaPropo.weights.Thin]
+shape = 100
+menu = 100
+css = 100
+
+[buildPlans.NexsevkaPropo.weights.ExtraLight]
+shape = 200
+menu = 200
+css = 200
+
+[buildPlans.NexsevkaPropo.weights.Light]
+shape = 300
+menu = 300
+css = 300
+
+[buildPlans.NexsevkaPropo.weights.Medium]
+shape = 500
+menu = 500
+css = 500
+
+[buildPlans.NexsevkaPropo.weights.SemiBold]
+shape = 600
+menu = 600
+css = 600
+
+[buildPlans.NexsevkaPropo.weights.ExtraBold]
+shape = 800
+menu = 800
+css = 800
+
+[buildPlans.NexsevkaPropo.weights.Heavy]
+shape = 900
+menu = 900
+css = 900
+
+[buildPlans.NexsevkaPropo.widths.Normal]
+shape = 500
+menu = 5
+css = "normal"
+
+[buildPlans.NexsevkaPropo.slopes.Upright]
+angle = 0
+shape = "upright"
+menu = "upright"
+css = "normal"
+
+[buildPlans.NexsevkaPropo.slopes.Italic]
+angle = 12
+shape = "italic"
+menu = "italic"
+css = "italic"
+
+[buildPlans.NexsevkaPropo.metricOverride]
+xHeight = 500
+cap = 700
+ascender = 750
+sb = 75
+
+accentWidth = 200
+accentClearance = 100
+accentHeight = 150
+accentStackOffset = 200
+
+leading = 1250
+parenSize = 850
+dotSize = "blend(weight, [100, 110], [400, 125], [900, 150])"
+periodSize = 150
+
+onumZeroHeightRatio = 1
+
+essRatio = 1
+essRatioUpper = 1
+essRatioLower = 1
+essRatioQuestion = 1
+archDepth = 225
+smallArchDepth = 175

@@ -200,8 +200,8 @@ let (y: int | str, str b2, f64 c2) = (42, "hello", 3.14)
 // ----- Macro definitions -----
 %define MAX_SIZE 1024
 %define PI 3.14159265358979
-%define SQUARE(x) ((x) * (x))
-%define CLAMP(v, lo, hi) (v < lo ? lo : v > hi ? hi : v)
+%define SQUARE(x) x * x
+%define CLAMP(v, lo, hi) v < lo ? lo : v > hi ? hi : v
 
 // Undefine a macro
 %undef MAX_SIZE
@@ -229,10 +229,11 @@ let (y: int | str, str b2, f64 c2) = (42, "hello", 3.14)
 %pragma once                  // include guard
 %pragma optimize on
 %pragma optimize off
-%pragma pack(1)               // struct packing
+%pragma pack 1                // struct packing
 %pragma region "My Region"
 // ... code ...
 %pragma endregion
+%pragma mark "New Section"
 
 // ----- Assertion / debug -----
 %assert sizeof(int) == 4
@@ -245,15 +246,19 @@ let (y: int | str, str b2, f64 c2) = (42, "hello", 3.14)
 %exec buildStep()     // runs at build time
 
 // ----- Module directives -----
-%import { alpha, beta } from "lib"
-%export { myFunc, MyClass }
-%extern "C" { /* C ABI bindings */ }
+%import lib::{alpha, beta}
+%export {myFunc, MyClass}
+%extern "C" {/* C ABI bindings */}
 %intern myPrivateThing
 
 // ----- Miscellaneous -----
 %once                         // file-level include guard (shorthand)
-%warning "This API is deprecated"
-%error "Do not compile on 32-bit targets"
+%info What the hell is going on here?
+%trace Tracing information
+%debug Debug information
+%fatal Fatal error
+%warn This API is deprecated
+%error Do not compile on 32-bit targets
 
 \* ============================================================
    04 — TYPE SYSTEM & TYPE EXPRESSIONS

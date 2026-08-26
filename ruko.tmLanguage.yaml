@@ -693,33 +693,64 @@ repository:
           2: {name: keyword.control.directive.ruko}
         patterns: [{include: $self}]
       - applyEndPatternLast: true
-        begin: ^\s*(%)(define|undef)\b
+        comment: '%define <ident> [(params)] expr'
+        begin: ^\s*(%)(define)\b\s+
         end: $
         name: meta.directive.ruko
-        captures:
+        beginCaptures:
           1: {name: punctuation.definition.directive.ruko}
           2: {name: keyword.control.directive.ruko}
         patterns:
-          - include: '#regexp-patterns'
-          - begin: (:)\s*
-            end: \s*([,;])|$
-            name: string.regexp.replace.ruko
-            captures:
-              1: {name: punctuation.definition.regexp.ruko}
+          - begin: |-
+              (?x)
+              (?<=^\s*%define\b\s+) # match %define <ident> [(params)] expr
+              (?!
+                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                #this.repository.define.repository.keywords.match
+              )
+              ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))(?=\()
+            end: (?=$)
+            beginCaptures:
+              1: {name: entity.name.constant.macro.ruko}
             patterns:
-              - include: '#back-references'
-              - include: '#escapes-embedded'
-              - begin: \s*({)
-                end: (\})\s*
-                name: meta.interpolation.regexp.ruko
+              - begin: (\#?\()\s*
+                end: \s*(\))
                 captures:
-                  1: {name: punctuation.definition.variable.ruko}
+                  1: {name: punctuation.definition.parameters.ruko}
                 patterns:
-                  - include: '#back-references'
-                  - include: '#escapes-embedded'
+                  - include: '#lambda-patterns'
                   - include: $self
-          - match: .+
-            name: meta.directive.definition.ruko
+              - include: $self
+          - match: |-
+              (?x)
+              (?<=^\s*%define\b\s+) # match %define <ident> [(params)] expr
+              (?!
+                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                #this.repository.define.repository.keywords.match
+              )
+              ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))
+            captures:
+              1: {name: entity.name.constant.macro.ruko}
+          - include: $self
+      - applyEndPatternLast: true
+        comment: '%undef <ident>'
+        begin: ^\s*(%)(undef)\b\s+
+        end: $
+        name: meta.directive.ruko
+        beginCaptures:
+          1: {name: punctuation.definition.directive.ruko}
+          2: {name: keyword.control.directive.ruko}
+        patterns:
+          - match: |-
+              (?x)
+              (?<=^\s*%undef\b\s+)
+              (?!
+                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                #this.repository.define.repository.keywords.match
+              )
+              ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))
+            captures:
+              1: {name: entity.name.constant.macro.ruko}
       - applyEndPatternLast: true
         begin: ^\s*(%)(include|exclude|import|export|extern|intern)\b
         end: $
@@ -729,7 +760,27 @@ repository:
           2: {name: keyword.control.directive.ruko}
         patterns: [{include: '#module-content'}]
       - applyEndPatternLast: true
-        begin: ^\s*(%)(pragma|region|endregion|once)\b
+        comment: '%pragma <ident> ...'
+        begin: ^\s*(%)(pragma)\b\s+
+        end: $
+        name: meta.directive.ruko
+        beginCaptures:
+          1: {name: punctuation.definition.directive.ruko}
+          2: {name: keyword.control.directive.ruko}
+        patterns:
+          - match: |-
+              (?x)
+              (?<=^\s*%pragma\b\s+)
+              (?!
+                (?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)
+                #this.repository.define.repository.keywords.match
+              )
+              ((?>`(?>``|[^`])+`|\b[\p{L}\p{Nl}\p{Pc}]\w*\b))
+            captures:
+              1: {name: entity.name.pragma.ruko}
+          - include: $self
+      - applyEndPatternLast: true
+        begin: ^\s*(%)(region|endregion|once)\b
         end: $
         name: meta.directive.ruko
         captures:
@@ -737,7 +788,7 @@ repository:
           2: {name: keyword.control.directive.ruko}
         patterns: [{include: $self}]
       - applyEndPatternLast: true
-        begin: ^\s*(%)(error|warning)\b
+        begin: ^\s*(%)(info|error|warn|trace|debug|fatal)\b
         end: $
         name: meta.directive.ruko
         captures:
@@ -6812,8 +6863,7 @@ repository:
       \s*(?<!['"`)\]}\w\s](?:[?!]?\.|[?!:]:|[?!-]>)=?)\b(va[rl]|let|mut|const)\b\s*
 
       (?!
-          $ 
-        | [,;] # end of declaration
+          $ | [,;] # end of declaration
         | :\s # type annotation after identifier
         | [)\]}] # closing brackets
         | [?:]?= (?: # assignment operator

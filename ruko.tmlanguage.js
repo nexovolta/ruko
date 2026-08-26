@@ -67,37 +67,55 @@ export default {
         {
           applyEndPatternLast: true,
           begin:
-            /(?<=^|\n(?!$))\p{space}*(%)(define|undef)(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))/,
+            /(?<=^|\n(?!$))\p{space}*(%)(define)(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))\p{space}+/,
           end: /(?=$|\n)/,
           name: "meta.directive.ruko",
-          captures: {
+          beginCaptures: {
             1: {name: "punctuation.definition.directive.ruko"},
             2: {name: "keyword.control.directive.ruko"},
           },
           patterns: [
-            {include: "#regexp-patterns"},
             {
-              begin: /(:)\p{space}*/,
-              end: /\p{space}*([\,\;])|(?=$|\n)/,
-              name: "string.regexp.replace.ruko",
-              captures: {1: {name: "punctuation.definition.regexp.ruko"}},
+              begin:
+                /(?<=(?<=^|\n(?!$))\p{space}*%define(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))\p{space}+)(?!(?<![\]"'\)\`\}\p{L}\p{M}\p{N}\p{Pc}\p{space}](?:[\!\?]?\.|[\!\:\?]:|[\-\!\?]>)=?)(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))(?:(?:(?:ca|el|rai|u)s|(?:modu|sty|whi)l|(?:igno|whe)r|(?:r|sp)ac|(?:un)?saf|(?:sco|ty)p|hid|mov|quot)e|(?:[gls]e|(?:(?:in)?o|m)u|(?:aw|tr)ai|(?:obje|stru)c|asser|cons|no|scrip)t|(?:(?:[fn]|act|err|xn?)?o|(?:def|in?t|op|shad)e|va)r|(?:(?:[iou]n|go)?t|(?:re)?d|comp|ech|g|macr)o|(?:(?:beg|jo)?i|(?:uni)?o|[tw]he|ca|retur)n|(?:(?:con?|n)?impl|(?:(?:re)?t|que)r|b|cop)y|(?:(?:n?a|l?e)n|(?:gua|reco)r|(?:o|yie)l)d|(?:(?:e?v|fin|ste)a|dec?|imp)l|(?:[dr]e|(?:el)?i|of??)f|(?:h?a|(?:cl|p)as|i)s|(?:(?:[dp]r|lo)o|ski|tem)p|(?:(?:[cm]a|swi)tc|wit)h|(?:brea|chec|sin)k|(?:enu|fro|real)m|(?:exe|fun|pro)c|(?:(?:sh|thr)o|ne)w|debug|schema)(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}])))((?:(?=(`(?:(?=(``|[^\`]))\3)+`|(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))[\p{L}\p{Nl}\p{Pc}][\p{L}\p{M}\p{N}\p{Pc}]*(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))))\2))(?=\()/,
+              end: /(?=(?=$|\n))/,
+              beginCaptures: {1: {name: "entity.name.constant.macro.ruko"}},
               patterns: [
-                {include: "#back-references"},
-                {include: "#escapes-embedded"},
                 {
-                  begin: /\p{space}*(\{)/,
-                  end: /(\})\p{space}*/,
-                  name: "meta.interpolation.regexp.ruko",
-                  captures: {1: {name: "punctuation.definition.variable.ruko"}},
-                  patterns: [
-                    {include: "#back-references"},
-                    {include: "#escapes-embedded"},
-                    {include: "$self"},
-                  ],
+                  begin: /(#?\()\p{space}*/,
+                  end: /\p{space}*(\))/,
+                  captures: {
+                    1: {name: "punctuation.definition.parameters.ruko"},
+                  },
+                  patterns: [{include: "#lambda-patterns"}, {include: "$self"}],
                 },
+                {include: "$self"},
               ],
             },
-            {match: /[^\n]+/, name: "meta.directive.definition.ruko"},
+            {
+              match:
+                /(?<=(?<=^|\n(?!$))\p{space}*%define(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))\p{space}+)(?!(?<![\]"'\)\`\}\p{L}\p{M}\p{N}\p{Pc}\p{space}](?:[\!\?]?\.|[\!\:\?]:|[\-\!\?]>)=?)(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))(?:(?:(?:ca|el|rai|u)s|(?:modu|sty|whi)l|(?:igno|whe)r|(?:r|sp)ac|(?:un)?saf|(?:sco|ty)p|hid|mov|quot)e|(?:[gls]e|(?:(?:in)?o|m)u|(?:aw|tr)ai|(?:obje|stru)c|asser|cons|no|scrip)t|(?:(?:[fn]|act|err|xn?)?o|(?:def|in?t|op|shad)e|va)r|(?:(?:[iou]n|go)?t|(?:re)?d|comp|ech|g|macr)o|(?:(?:beg|jo)?i|(?:uni)?o|[tw]he|ca|retur)n|(?:(?:con?|n)?impl|(?:(?:re)?t|que)r|b|cop)y|(?:(?:n?a|l?e)n|(?:gua|reco)r|(?:o|yie)l)d|(?:(?:e?v|fin|ste)a|dec?|imp)l|(?:[dr]e|(?:el)?i|of??)f|(?:h?a|(?:cl|p)as|i)s|(?:(?:[dp]r|lo)o|ski|tem)p|(?:(?:[cm]a|swi)tc|wit)h|(?:brea|chec|sin)k|(?:enu|fro|real)m|(?:exe|fun|pro)c|(?:(?:sh|thr)o|ne)w|debug|schema)(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}])))((?:(?=(`(?:(?=(``|[^\`]))\3)+`|(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))[\p{L}\p{Nl}\p{Pc}][\p{L}\p{M}\p{N}\p{Pc}]*(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))))\2))/,
+              captures: {1: {name: "entity.name.constant.macro.ruko"}},
+            },
+            {include: "$self"},
+          ],
+        },
+        {
+          applyEndPatternLast: true,
+          begin:
+            /(?<=^|\n(?!$))\p{space}*(%)(undef)(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))\p{space}+/,
+          end: /(?=$|\n)/,
+          name: "meta.directive.ruko",
+          beginCaptures: {
+            1: {name: "punctuation.definition.directive.ruko"},
+            2: {name: "keyword.control.directive.ruko"},
+          },
+          patterns: [
+            {
+              match:
+                /(?<=(?<=^|\n(?!$))\p{space}*%undef(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))\p{space}+)(?!(?<![\]"'\)\`\}\p{L}\p{M}\p{N}\p{Pc}\p{space}](?:[\!\?]?\.|[\!\:\?]:|[\-\!\?]>)=?)(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))(?:(?:(?:ca|el|rai|u)s|(?:modu|sty|whi)l|(?:igno|whe)r|(?:r|sp)ac|(?:un)?saf|(?:sco|ty)p|hid|mov|quot)e|(?:[gls]e|(?:(?:in)?o|m)u|(?:aw|tr)ai|(?:obje|stru)c|asser|cons|no|scrip)t|(?:(?:[fn]|act|err|xn?)?o|(?:def|in?t|op|shad)e|va)r|(?:(?:[iou]n|go)?t|(?:re)?d|comp|ech|g|macr)o|(?:(?:beg|jo)?i|(?:uni)?o|[tw]he|ca|retur)n|(?:(?:con?|n)?impl|(?:(?:re)?t|que)r|b|cop)y|(?:(?:n?a|l?e)n|(?:gua|reco)r|(?:o|yie)l)d|(?:(?:e?v|fin|ste)a|dec?|imp)l|(?:[dr]e|(?:el)?i|of??)f|(?:h?a|(?:cl|p)as|i)s|(?:(?:[dp]r|lo)o|ski|tem)p|(?:(?:[cm]a|swi)tc|wit)h|(?:brea|chec|sin)k|(?:enu|fro|real)m|(?:exe|fun|pro)c|(?:(?:sh|thr)o|ne)w|debug|schema)(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}])))((?:(?=(`(?:(?=(``|[^\`]))\3)+`|(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))[\p{L}\p{Nl}\p{Pc}][\p{L}\p{M}\p{N}\p{Pc}]*(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))))\2))/,
+              captures: {1: {name: "entity.name.constant.macro.ruko"}},
+            },
           ],
         },
         {
@@ -115,7 +133,26 @@ export default {
         {
           applyEndPatternLast: true,
           begin:
-            /(?<=^|\n(?!$))\p{space}*(%)(pragma|region|endregion|once)(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))/,
+            /(?<=^|\n(?!$))\p{space}*(%)(pragma)(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))\p{space}+/,
+          end: /(?=$|\n)/,
+          name: "meta.directive.ruko",
+          beginCaptures: {
+            1: {name: "punctuation.definition.directive.ruko"},
+            2: {name: "keyword.control.directive.ruko"},
+          },
+          patterns: [
+            {
+              match:
+                /(?<=(?<=^|\n(?!$))\p{space}*%pragma(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))\p{space}+)(?!(?<![\]"'\)\`\}\p{L}\p{M}\p{N}\p{Pc}\p{space}](?:[\!\?]?\.|[\!\:\?]:|[\-\!\?]>)=?)(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))(?:(?:(?:ca|el|rai|u)s|(?:modu|sty|whi)l|(?:igno|whe)r|(?:r|sp)ac|(?:un)?saf|(?:sco|ty)p|hid|mov|quot)e|(?:[gls]e|(?:(?:in)?o|m)u|(?:aw|tr)ai|(?:obje|stru)c|asser|cons|no|scrip)t|(?:(?:[fn]|act|err|xn?)?o|(?:def|in?t|op|shad)e|va)r|(?:(?:[iou]n|go)?t|(?:re)?d|comp|ech|g|macr)o|(?:(?:beg|jo)?i|(?:uni)?o|[tw]he|ca|retur)n|(?:(?:con?|n)?impl|(?:(?:re)?t|que)r|b|cop)y|(?:(?:n?a|l?e)n|(?:gua|reco)r|(?:o|yie)l)d|(?:(?:e?v|fin|ste)a|dec?|imp)l|(?:[dr]e|(?:el)?i|of??)f|(?:h?a|(?:cl|p)as|i)s|(?:(?:[dp]r|lo)o|ski|tem)p|(?:(?:[cm]a|swi)tc|wit)h|(?:brea|chec|sin)k|(?:enu|fro|real)m|(?:exe|fun|pro)c|(?:(?:sh|thr)o|ne)w|debug|schema)(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}])))((?:(?=(`(?:(?=(``|[^\`]))\3)+`|(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))[\p{L}\p{Nl}\p{Pc}][\p{L}\p{M}\p{N}\p{Pc}]*(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))))\2))/,
+              captures: {1: {name: "entity.name.pragma.ruko"}},
+            },
+            {include: "$self"},
+          ],
+        },
+        {
+          applyEndPatternLast: true,
+          begin:
+            /(?<=^|\n(?!$))\p{space}*(%)(region|endregion|once)(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))/,
           end: /(?=$|\n)/,
           name: "meta.directive.ruko",
           captures: {
@@ -127,7 +164,7 @@ export default {
         {
           applyEndPatternLast: true,
           begin:
-            /(?<=^|\n(?!$))\p{space}*(%)(error|warning)(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))/,
+            /(?<=^|\n(?!$))\p{space}*(%)(info|error|warn|trace|debug|fatal)(?:(?<=[\p{L}\p{M}\p{N}\p{Pc}])(?![\p{L}\p{M}\p{N}\p{Pc}])|(?<![\p{L}\p{M}\p{N}\p{Pc}])(?=[\p{L}\p{M}\p{N}\p{Pc}]))/,
           end: /(?=$|\n)/,
           name: "meta.directive.ruko",
           captures: {

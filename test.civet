@@ -1,0 +1,2068 @@
+/**
+ * lib.civet holds functions that are used inside parser.hera
+ *
+ * The rules inside parser.hera should be simple and short.
+ * Most of the helpers/transforms should make their way into
+ * here eventually.
+ */
+
+import type {
+  AccessStart
+  ASTLeaf
+  ASTNode
+  ASTNodeObject
+  ASTRef
+  BlockStatement
+  BreakStatement
+  Call
+  CallExpression
+  CaseBlock
+  CatchBinding
+  CatchClause
+  ComptimeStatement
+  Condition
+  ContinueStatement
+  Declaration
+  DoStatement
+  ElseClause
+  FinallyClause
+  ForStatement
+  FunctionSignature
+  IfStatement
+  Initializer
+  IterationStatement
+  Label
+  LabelledStatement
+  MemberExpression
+  MethodDefinition
+  NormalCatchParameter
+  ObjectExpression
+  ParametersNode
+  ParenthesizedExpression
+  Placeholder
+  StatementNode
+  StatementTuple
+  SwitchStatement
+  TypeArgument
+  TypeArguments
+  TypeNode
+  TypeSuffix
+  WSNode
+} from ./types.civet
+
+import {
+  findAncestor
+  findChildIndex
+  gatherRecursive
+  gatherRecursiveAll
+  gatherRecursiveWithinFunction
+} from ./traversal.civet
+
+import {
+  addParentPointers
+  append
+  assert
+  checkValidLHS
+  deepCopy
+  flatJoin
+  getTrimmingSpace
+  hasAwait
+  hasExportDeclaration
+  hasImportDeclaration
+  hasTrailingComment
+  hasYield
+  inplaceInsertTrimmingSpace
+  inplacePrepend
+  insertTrimmingSpace
+  isComma
+  isEmptyBareBlock
+  isFunction
+  isWhitespaceOrEmpty
+  literalValue
+  makeLeftHandSideExpression
+  makeNode
+  maybeWrap
+  maybeUnwrap
+  parenthesizeType
+  prepend
+  replaceNode
+  replaceNodes
+  stripTrailingImplicitComma
+  trimFirstSpace
+  wrapIIFE
+  wrapWithReturn
+} from ./util.civet
+
+import {
+  makeRef
+  makeRefAssignment
+  maybeRef
+  maybeRefAssignment
+  needsRef
+  populateRefs
+} from ./ref.civet
+
+import {
+  blockContainingStatement
+  blockWithPrefix
+  braceBlock
+  bracedBlock
+  duplicateBlock
+  hoistRefDecs
+  makeEmptyBlock
+  processBlocks
+} from ./block.civet
+
+import {
+  convertWithClause
+  dynamizeImportDeclaration
+  dynamizeImportDeclarationExpression
+  prependStatementExpressionBlock
+  processAssignmentDeclaration
+  processDeclarationConditions
+  processDeclarations
+} from ./declaration.civet
+
+import { processPipelineExpressions } from ./pipe.civet
+import { forRange, processForInOf, processRangeExpression } from ./for.civet
+import {
+  findSuperCall
+  makeAmpersandFunction
+  processCoffeeDo
+  processFunctions
+  processIterationExpressions
+  skipImplicitArguments
+  wrapTypeInPromise
+} from ./function.civet
+import { processPatternMatching } from ./pattern-matching.civet
+import {
+  adjustAtBindings
+  adjustBindingElements
+  gatherBindingCode
+  gatherBindingPatternTypeSuffix
+  gatherSubbindings
+  simplifyBindingProperties
+} from ./binding.civet
+import {
+  getPrecedence
+  isShortCircuitOp
+  precedenceCustomDefault
+  precedenceStep
+  processBinaryOpExpression
+} from ./op.civet
+import {
+  processUnaryExpression
+  processUnaryNestedExpression
+} from ./unary.civet
+import { createConstLetDecs, createVarDecs } from ./auto-dec.civet
+import { expressionizeComptime, processComptime } from ./comptime.civet
+import {
+  extractPreludeFor
+  getHelperRef
+  peekHelperRef
+} from ./helper.civet
+
+import {
+  dedentBlockString
+  dedentBlockSubstitutions
+  getIndentLevel
+  modifyString
+  processCoffeeInterpolation
+  quoteString
+} from ./string.civet
+
+import {
+  getConfig
+  getState
+  getSync
+} from ../parser.hera
+
+function addPostfixStatement(statement: StatementNode, ws: ASTNode, post: IterationStatement | ForStatement | IfStatement)
+  expressions := [
+    ...post.blockPrefix or []
+    ["", statement]
+  ]
+
+  block := makeNode {
+    type: "BlockStatement"
+    children: [" { ", expressions, " }"]
+    expressions
+    bare: false
+  }
+
+  children := [ ...post.children, block ]
+
+  // This removes trailing whitespace for easier testing
+  if (!isWhitespaceOrEmpty(ws)) children.push(ws)
+
+  post = makeNode { ...post, children, block }
+  if post.type is "IfStatement"
+    post.then = block
+  return post
+
+/**
+ * Adjusts the index access to use brackets instead of dot
+ * while accounting for optional chaining.
+ */
+function adjustIndexAccess(dot: AccessStart): AccessStart
+  if dot.optional
+    // ?. turns into ?.[
+    return {
+      ...dot,
+      children: [...dot.children, "["]
+    }
+  else
+    dot = replaceNodes deepCopy(dot),
+      (node) => node.token is ".",
+      (node) => ({ ...node, token: "[" })
+
+  return dot
+
+// Negate expression inside condition
+function negateCondition(condition)
+  { expression } .= condition
+  children := condition.children.slice()
+  i := children.indexOf(expression)
+  if i < 0
+    throw new Error `Could not find expression in condition`
+  pre := ["!"]
+  expression = makeLeftHandSideExpression expression
+  children[i] = expression = {
+    type: "UnaryExpression"
+    children: [
+      pre
+      expression
+    ]
+    pre
+    expression
+  }
+  { ...condition, expression, children }
+
+/**
+Somewhat incomplete detection of expressions used to
+determine when we have to wrap if blocks in IIFE instead of
+converting to ternary expressions.
+*/
+function isExpression(node: ASTNode): boolean
+  if Array.isArray(node)
+    return node.every(isExpression)
+
+  if typeof node is "string"
+    // TODO: may not quite be correct
+    return true
+
+  switch node?.type
+    case "BlockStatement"
+    case "DebuggerStatement"
+    case "Declaration"
+    case "ForStatement"
+    case "IfStatement"
+    case "IterationStatement"
+    case "ReturnStatement"
+    case "SwitchStatement"
+    case "ThrowStatement"
+    case "TryStatement"
+      return false
+
+  return true
+
+function expressionizeBlock(blockOrExpression: ASTNode)
+  if { expressions } := blockOrExpression
+    l := expressions#
+    results := []
+
+    for [ws, s, _delim], i of expressions
+      if (!isExpression(s)) return
+      wrapped := makeLeftHandSideExpression s
+      if i is l - 1
+        results.push [ws, wrapped]
+      else
+        results.push [ws, wrapped, ","]
+
+    if results# > 1
+      makeLeftHandSideExpression results
+    else if results#
+      results
+    else
+      ["void 0"]
+  else
+    blockOrExpression
+
+function expressionizeIfStatement(statement: IfStatement): ASTNode
+  { condition, then: b, else: e } := statement
+  [ ...condRest, closeParen ] := condition.children  // separate ')'
+
+  expressionizedBlock := expressionizeBlock b
+
+  unless expressionizedBlock
+    return wrapIIFE([["", statement]])
+
+  children := [
+    ...condRest
+    "?"
+    expressionizedBlock
+  ]
+  if e
+    e2 := expressionizeBlock(e.block)
+    unless e2
+      return wrapIIFE([["", statement]])
+
+    // Replace 'else' in e.children[1] with ':'. (e.children[0] is space before 'else')
+    children.push e.children[0], ":", e2, ...e.children[3..]
+  else
+    children.push ":void 0"
+  children.push closeParen
+
+  makeNode {
+    type: "IfExpression"
+    children
+  }
+
+function expressionizeTypeIf([ifOp, condition, t, e])
+  children := [
+    "("
+    trimFirstSpace condition
+    "?"
+  ]
+  unless ifOp.negated xor condition.negated // if
+    children.push t
+    if e
+      // Replace 'else' in e[1] with ':'. (e[0] is space before 'else')
+      children.push e[0], ":", ...e[2..]
+    else
+      children.push ":never"
+  else // unless
+    if e
+      children.push ...e[2..], e[0], ":"
+    else
+      children.push "never:"
+    children.push t
+  children.push ")"
+  children
+
+/**
+ * This adjusts #x.y().z and @x.y().z when used inside Object glob expressions
+ * to remove `this.` where necessary.
+ *
+ * [See More](../test/object.civet)
+ */
+function handleThisPrivateShorthands(value)
+  if value.privateShorthand
+    value = value.children[1].children[1]
+
+    return [value, false]
+
+  if value.type is "MemberExpression" or value.type is "CallExpression"
+    suppressPrefix .= value.thisShorthand
+    value = {
+      ...value,
+      children: value.children.map (c, i) =>
+        if i is 0
+          let s
+          [c, s] = handleThisPrivateShorthands c
+          suppressPrefix ||= s
+
+        c
+    }
+
+    return [value, suppressPrefix]
+
+  return [value, value.thisShorthand]
+
+function processTryBlock($0: [ASTLeaf, undefined, BlockStatement, CatchClause[], ElseClause?, FinallyClause?])
+  [t, , b, cs, e, f] .= $0
+
+  // Pattern matching catch clauses: transform into pattern matching switch
+  let c: CatchClause?
+  if cs.some .binding?.parameter is like {type: "CatchPattern"}
+    ref := makeRef("e")
+    binding: CatchBinding :=
+      type: "CatchBinding"
+      children: [ "(", ref, ")" ]
+      parameter: ref
+    condition: ParenthesizedExpression :=
+      type: "ParenthesizedExpression"
+      children: [ "(", ref, ")" ]
+      expression: ref
+    defaultClause .= false
+    clauses: CaseBlock["clauses"] := cs.map (clause) =>
+      if {type: "CatchPattern", patterns} := clause.binding?.parameter
+        {
+          type: "PatternClause"
+          patterns
+          block: clause.block
+          children: [ patterns, clause.block ]
+        }
+      else
+        defaultClause = true
+        parameter := clause.binding?.parameter
+        if parameter?
+          assert.equal parameter.type, "CatchParameter",
+            `Invalid catch parameter ${parameter.type}`
+          { binding: pattern, typeSuffix } := parameter as NormalCatchParameter
+          initializer: Initializer :=
+            type: "Initializer"
+            expression: ref
+            children: [ "", " = ", ref ]
+          bindings: Bindings[] := [{
+            type: "Binding"
+            names: pattern.names
+            pattern
+            typeSuffix
+            initializer
+            children: [ pattern, typeSuffix, initializer ]
+            splices: []
+            thisAssignments: []
+          }]
+          clause.block.expressions.unshift ["", {
+            type: "Declaration"
+            children: ["let", " ", bindings]
+            bindings
+            names: bindings[0].names
+            decl: "let"
+          }, ";"]
+
+        type: "DefaultClause"
+        block: clause.block
+        children: [ "default: ", clause.block ]
+
+    // If no default clause specified, add one that rethrows exception
+    unless defaultClause
+      expressions: StatementTuple[] := [["",
+        type: "ThrowStatement"
+        children: [ "throw", " ", ref ]
+      ]]
+      block: BlockStatement := {
+        type: "BlockStatement"
+        expressions
+        children: [ " {", expressions, "}" ]
+        bare: false
+      }
+      clauses.push {
+        type: "DefaultClause"
+        block
+        children: [ "default: ", block ]
+      }
+    caseBlock: CaseBlock := {
+      type: "CaseBlock"
+      clauses
+      children: [ " {", clauses, "}" ]
+    }
+    patternSwitch: SwitchStatement := {
+      type: "SwitchStatement"
+      condition
+      caseBlock
+      children: [ "switch", condition, caseBlock ]
+    }
+    block: BlockStatement :=
+      type: "BlockStatement"
+      bare: false
+      expressions: [["", patternSwitch]]
+      children: [" {", patternSwitch, "}"]
+    c = makeNode {
+      type: "CatchClause"
+      children:
+        . cs[0].children[0] // whitespace
+        . cs[0].children[1] // catch token
+        . binding, block
+      binding
+      block
+    }
+  else
+    c = cs[0]
+    if cs# > 1
+      c = append c,
+        type: "Error"
+        message: "Only one catch clause allowed unless using pattern matching"
+      as CatchClause
+
+  // Default behavior catches all exceptions
+  if !c and (e or !f)
+    emptyCatchBlock := makeEmptyBlock()
+
+    c =
+      type: "CatchClause"
+      children: [" ", "catch(e) ", emptyCatchBlock]
+      block: emptyCatchBlock
+
+  // else clause support
+  let hoistDec: Declaration?
+  if e
+    c = c!  // absent catch clause would have been created above
+    // `let ok = true` before try
+    ok := makeRef 'ok'
+    hoistDec =
+      type: "Declaration"
+      children: [ "let ", ok, " = true" ]
+      names: []
+    // `ok = false` inside catch block
+    replaceNode
+      c.block
+      blockWithPrefix [["", "ok = false"]], c.block
+      c
+    // Prepend else block to finally block with `if (ok)` prefix
+    condition: Condition :=
+      type: "ParenthesizedExpression"
+      children: ["(", ok, ")"]
+      expression: ok
+    i := makeNode {
+      type: "IfStatement"
+      children: ["if", condition, e.block]
+      condition
+      then: e.block
+      else: undefined
+    }
+    unless f
+      emptyFinallyBlock := makeEmptyBlock()
+      f =
+        type: "FinallyClause"
+        children: [" ", "finally ", emptyFinallyBlock]
+        block: emptyFinallyBlock
+    replaceNode
+      f.block
+      blockWithPrefix [["", i]], f.block
+      f
+
+  blocks := [b]
+  blocks.push c.block if c
+  // Omitting finally block here, to avoid implicit return from finally block
+
+  return {
+    type: "TryStatement"
+    blocks
+    children: [t, b, c, f]
+    hoistDec
+  }
+
+/**
+ * Process globs, bind shorthand, and call shortcuts, in Call/MemberExpression
+ */
+function processCallMemberExpression(node: CallExpression | MemberExpression): ASTNode
+  { children } := node
+
+  // Parenthesized operator like (+), immediately called, expands to
+  // use of the operator. This is useful for e.g. shortcutting (&&).
+  if children is like [ {parenthesizedOp: {token}}, {type: "Call"}, ... ]
+    op := children[0].parenthesizedOp
+    call .= children[1]
+    args := [...call.args] // shallow copy
+    call = {
+      ...call
+      args
+      children: call.children.map (x) => x is call.args ? args : x
+    }
+    // Remove trailing comma
+    if isComma args.-1
+      args.-1 = deepCopy args.-1
+      (isComma(args.-1) as ASTLeaf).token = ''
+    // Arguments already start and end with open and close parentheses.
+    // Replace each comma with an instance of the operator and matching parens.
+    commaCount .= 0
+    for each let arg, i of args
+      if isComma arg
+        arg = args[i] = deepCopy arg
+        (isComma(arg) as ASTLeaf).token = `)${op.token}(`
+        commaCount++
+    // Don't mess with (+)()
+    if args#
+      if commaCount
+        children.splice 0, 2,
+          type: "ParenthesizedExpression"
+          children: ["(", call.children, ")"]
+          expression: call.children
+      else // already parenthesized by argument parens
+        middle := call.children[<..<]
+        children.splice 0, 2,
+          type: "ParenthesizedExpression"
+          expression: middle
+          children: [ call.children.0, middle, call.children.-1 ]
+      // If nothing left to this CallExpression, remove the wrapper
+      if children# is 1
+        return children[0]
+
+  // Process globs and bind shorthand
+  for each glob, i of children
+    if glob?.type is "PropertyGlob"
+      prefix .= children[...i]
+      parts := []
+      let ref
+      // add ref to ensure object base evaluated only once
+      if needsRef(prefix) and glob.object.properties# > 1
+        // unwrap unnecessary parentheses in ref assignment
+        if prefix is like [{ type: "ParenthesizedExpression", implicit: true }]
+          prefix = [ prefix[0].expression ]
+        ref = makeRef()
+        { refAssignment } := makeRefAssignment ref, prefix
+        // First use of prefix assigns ref
+        prefix = [ makeLeftHandSideExpression refAssignment ]
+      prefixDot .= [ ...prefix, glob.dot ]
+
+      for part of glob.object.properties
+        if part.type is "Error"
+          parts.push part
+          continue
+        if part.type is "MethodDefinition"
+          parts.push
+            type: "Error"
+            message: "Glob pattern cannot have method definition"
+          continue
+        if part.value and part.value.type is not in ["CallExpression", "MemberExpression", "Identifier", "StringLiteral", "ComputedPropertyName"] as (string?)[]
+          parts.push
+            type: "Error"
+            message: `Glob pattern must have call or member expression value, found ${JSON.stringify(part.value)}`
+          continue
+
+        suppressPrefix .= false
+        name .= part.name
+        value .= part.value ?? name
+        wValue := getTrimmingSpace part.value
+
+        [value, suppressPrefix] = handleThisPrivateShorthands value
+
+        // Not yet needed:
+        [name, value] = [value, name] if glob.reversed
+
+        unless suppressPrefix // Don't prefix @ shorthand
+          if value.type is "StringLiteral"
+            value = [ ...prefix,
+              type: "Index"
+              children: [ "[", trimFirstSpace(value), "]" ]
+            ]
+          else if value.type is "ComputedPropertyName"
+            value = [ ...prefix,
+              type: "Index"
+              children: [ trimFirstSpace value ]
+            ]
+          else
+            value = [ ...prefixDot, trimFirstSpace value ]
+          // Switch from refAssignment to ref
+          if ref?
+            prefix = [ ref ]
+            prefixDot = [ ...prefix, glob.dot ]
+        if (wValue) value.unshift wValue
+        if part.type is "SpreadProperty"
+          parts.push {
+            type: part.type
+            value
+            dots: part.dots
+            delim: part.delim
+            names: part.names
+            children: part.children.slice(0, 2) // whitespace, ...
+              .concat(value, part.delim)
+            usesRef: Boolean ref
+          }
+        else
+          parts.push {
+            type: part.type is "Identifier" ? "Property" : part.type
+            name
+            value
+            delim: part.delim
+            names: part.names
+            children: [
+              isWhitespaceOrEmpty(part.children[0]) and part.children[0]
+              name
+              isWhitespaceOrEmpty(part.children[2]) and part.children[2]
+              part.children[3]?.token is ":" ? part.children[3] : ":"
+              value
+              part.delim // comma delimiter
+            ]
+            usesRef: Boolean ref
+          }
+      object: ObjectExpression :=
+        type: "ObjectExpression"
+        children: [
+          glob.object.children.0 // {
+          ...parts
+          glob.object.children.-1 // whitespace and }
+        ]
+        properties: parts
+      if (i is children.length - 1) return object
+      return processCallMemberExpression({  // in case there are more
+        ...node
+        children: [object, ...children[i+1..]]
+      })
+    else if glob?.type is "PropertyBind"
+      assert.notEqual i, 0, "@ bind must be preceded by an expression"
+      prefix := i is 1 ? children[0] : children[<i]
+      { ref, refAssignment } := maybeRefAssignment prefix
+      return processCallMemberExpression({  // in case there are more
+        ...node
+        children: [
+          makeLeftHandSideExpression refAssignment ?? prefix
+          {
+            ...glob
+            type: "PropertyAccess"
+            children: [
+              ...glob.children
+              ".bind("
+              ref
+              ...glob.args.length > 0 ? [", "] : []
+              ...glob.args
+              ")"
+            ]
+          }
+          ...children[i+1..]
+        ]
+      })
+    else if glob is like {type: "Index", mod: true}
+      assert.notEqual i, 0, "Index access must be preceded by an expression"
+      prefix := i is 1 ? children[0] : children[<i]
+      { ref, refAssignment } := maybeRefAssignment prefix
+      args := [
+        glob.children[<..<] // between "[" and "]" tokens
+        ","
+        [ " ", ref, ".length" ]
+      ]
+      call := makeNode
+        type: "CallExpression"
+        implicit: true
+        children: [
+          getHelperRef "modulo"
+          makeNode {
+            type: "Call"
+            args
+            children:  [
+              "("
+              args
+              ")"
+            ]
+          }
+        ]
+      return processCallMemberExpression({  // in case there are more
+        ...node
+        children: [
+          makeLeftHandSideExpression refAssignment ?? prefix
+          makeNode {
+            ...glob
+            mod: false
+            expression: call
+            children: [
+              glob.children[0] // "[" token
+              call
+              glob.children.-1 // "]" token
+            ]
+          }
+          ...children[>i]
+        ]
+      })
+    else if glob is like {type: "SliceExpression", reversed: true}
+      args := [
+        { ...node, children: node.children[...i] }
+        { ...glob.children[0] as ASTLeaf, token: ", " }
+        ...glob.children[1...-1]
+      ]
+      rsliceCall: CallExpression := makeNode
+        type: "CallExpression"
+        implicit: true
+        children: [
+          getHelperRef "rslice"
+          makeNode {
+            type: "Call"
+            args
+            children: [
+              "("
+              args
+              glob.children.-1
+            ]
+          }
+        ]
+      return rsliceCall if i+1 >= children.length
+      return processCallMemberExpression makeNode {  // in case there are more
+        ...node
+        children: [
+          rsliceCall
+          ...children[i+1..]
+        ]
+      }
+  return node
+
+// Wrap expression in parentheses to make into a statement when:
+// * object literal expression
+// * anonymous function expression
+// * unary suffix applied to above
+// * comma operators applied to above
+function makeExpressionStatement(expression: ASTNode): ASTNode
+  if Array.isArray(expression) and expression[1]?[0]?[0]?[1]?.token is "," // CommaExpression
+    [
+      makeExpressionStatement expression[0]
+      expression[1].map [comma, exp] => // CommaDelimiter AssignmentExpression
+        [comma, makeExpressionStatement exp]
+    ]
+  else if expression?.type is "ObjectExpression" or
+          (expression?.type is "FunctionExpression" and not expression.id) or
+          (expression?.type is "UnaryExpression" and not expression.pre?# and
+           expression.expression is not
+           makeExpressionStatement expression.expression)
+    makeLeftHandSideExpression expression
+  else
+    expression
+
+/**
+Look for last property access like `.foo` or `[computed]` or root Identifier,
+before any calls like `(args)`, non-null assertions `!`, and optionals `?`.
+The return value should have a `name` property (for "Identifier",
+"PropertyAcess", and "Index"), or have `type` of "Index" (for `[computed]`),
+or be undefined.
+*/
+function lastAccessInCallExpression(exp)
+  while exp.type is "MemberExpression" or exp.type is "CallExpression"
+    { children } := exp
+    i .= children# - 1
+    while (i >= 0 and children[i] <? "object" and (
+      children[i].type is "Call" ||
+      children[i].type is "NonNullAssertion" ||
+      children[i].type is "Optional"
+    )) i--
+    if (i < 0) return
+    // Recurse into nested MemberExpression, e.g. from `x.y()`
+    exp = children[i]
+  if exp.type is "Identifier" or exp.type is "PropertyAccess" or exp.type is "Index"
+    exp
+
+// Given a MethodDefinition, convert into a FunctionExpression.
+// Returns undefined if the method is a getter or setter.
+function convertMethodToFunction(method)
+  { signature, block } := method
+  { async, modifier, optional } := signature
+  return if optional
+  return if modifier?.get or modifier?.set
+  func := ["function "]
+  if async?
+    // put `function` after `async`
+    func.unshift async
+    // ensure space after `async` (absent in e.g. `async* f()`)
+    if async# and not async.-1?.#
+      async.push " "
+  return {
+    ...signature
+    id: signature.name
+    signature
+    type: "FunctionExpression"
+    children: [
+      [...func, ...signature.children.slice(1)]
+      block
+    ]
+    block
+  }
+
+function convertFunctionToMethod(id, exp)
+  fnTokenIndex := exp.children.findIndex (c) -> c?.token?.startsWith("function")
+  // copy
+  children := exp.children.slice()
+  if exp.generator
+    // replace "function" and move generator ahead of id
+    children.splice(fnTokenIndex, 2, children[fnTokenIndex+1], id)
+  else
+    // replace "function" token with id
+    children.splice(fnTokenIndex, 1, id)
+
+  {
+    ...exp,
+    type: "MethodDefinition",
+    name: id.name,
+    signature: { ...exp.signature, id, name: id.name },
+    children
+  }
+
+function convertArrowFunctionToMethod(id, exp)
+  block := {...exp.block} // prepare for bracing
+  children := exp.children.filter((c) -> !(Array.isArray(c) && c[c.length-1]?.token?.includes("=>"))).map((c) -> c === exp.block ? block : c)
+  children.unshift(id)
+  exp = {
+    ...exp,
+    type: "MethodDefinition",
+    name: id.name,
+    signature: { ...exp.signature, id, name: id.name },
+    block,
+    children,
+    autoBind: true
+  }
+  block.parent = exp // needed by braceBlock
+  braceBlock(block)
+  exp
+
+// Convert NamedImports into equivalent ObjectExpression or ObjectBindingPattern
+function convertNamedImportsToObject(node, pattern?: boolean)
+  properties := node.specifiers.map (specifier) =>
+    if specifier.ts
+      { type: "Error", message: "cannot use `type` in dynamic import" }
+    else
+      { source, binding } := specifier
+      delim := specifier.children.-1
+      {
+        type: pattern ? "BindingProperty" : "Property"
+        name: source
+        value: binding unless source is binding
+        delim
+        children: source is binding
+          ? [ source, delim ]
+          : [ source, ":", binding, delim ]
+      }
+
+  {
+    type: pattern ? "ObjectBindingPattern" : "ObjectExpression"
+    names: node.names
+    properties
+    children: [
+      node.children.0 // {
+      properties
+      node.children.-1 // }
+    ]
+  }
+
+// Convert an ObjectExpression (with `properties`)
+// into a set of JSX attributes.
+// {foo} is equivalent to foo={foo}, and
+// {foo, bar: baz} is equivalent to foo={foo} and bar={baz}.
+// {...foo} is a special case.
+function convertObjectToJSXAttributes(obj: ObjectExpression)
+  parts := [] // JSX attributes
+  rest := []  // parts that need to be in {...rest} form
+  for part, i of obj.properties
+    if part.usesRef
+      rest.push part
+      continue
+    if (i > 0) parts.push(' ')
+    switch part.type
+      when "Identifier"
+        parts.push([part.name, '={', part.name, '}'])
+      when "Property"
+        if part.name.type is "ComputedPropertyName"
+          rest.push(part)
+        else
+          parts.push([part.name, '={', trimFirstSpace(part.value), '}'])
+      when "SpreadProperty"
+        parts.push(['{', part.dots, part.value, '}'])
+      when "MethodDefinition"
+        const func = convertMethodToFunction(part)
+        if func
+          parts.push([part.name, '={', convertMethodToFunction(part), '}'])
+        else
+          rest.push(part)
+      else
+        throw new Error `invalid object literal type in JSX attribute: ${part.type}`
+  if rest#
+    parts.push " " if parts# and parts.-1 is not " "
+    parts.push(["{...{", ...rest, "}}"])
+  return parts
+
+/**
+ * Returns a new MethodDefinition node.
+ */
+function makeGetterMethod(name, ws, value, returnType, block?: BlockStatement, kind: { token: "get" | "set" } = { token: "get" }, autoReturn: boolean = true): MethodDefinition
+  { token } := kind
+  ws = trimFirstSpace ws
+  let setVal
+  parameterList: ASTRef[] := []
+  isGet := token is "get"
+  unless isGet
+    parameterList.push setVal = makeRef "value"
+  parameters: ParametersNode :=
+    type: "Parameters"
+    children: ["(", parameterList, ")"]
+    parameters: parameterList
+    implicit: isGet
+
+  let expressions: StatementTuple[]
+  if block
+    // Duplicate block to avoid mutating original
+    block = duplicateBlock(block)
+    expressions = block.expressions
+  else
+    expressions = []
+    block = {
+      type: "BlockStatement"
+      expressions
+      children: ["{ ", expressions, " }"]
+      bare: false
+    }
+
+  if autoReturn
+    finalStatement: StatementTuple := isGet ?
+      [ [expressions[0]?.[0] or "", ws], wrapWithReturn(value) ]
+    :
+      [ [expressions[0]?.[0] or "", ws], [ value, " = ", setVal ] ]
+
+    expressions.push finalStatement
+
+  children := [kind, " ", name, parameters, returnType, block]
+
+  return {
+    type: "MethodDefinition"
+    children
+    name
+    signature: {
+      type: "MethodSignature"
+      modifier: {
+        get: token is "get"
+        set: token is "set"
+        async: false
+      }
+      name
+      returnType
+    }
+    block
+    parameters
+  }
+
+function processBindingPatternLHS(lhs, tail): void
+  // Expand AtBindings first before gathering splices
+  adjustAtBindings lhs, true
+  [splices, thisAssignments] := gatherBindingCode lhs
+  subbindings := gatherSubbindings lhs
+  simplifyBindingProperties lhs
+  simplifyBindingProperties subbindings
+  // TODO: This isn't quite right for compound assignments, may need to wrap with parens and use comma to return the complete value
+  tail.push
+    ...splices.map (s) => [", ", s]
+    ...thisAssignments.map (a) => [", ", a]
+    ...subbindings
+
+function processAssignments(statements): void
+  // Move assignments/updates within LHS of assignments/updates
+  // to run earlier via comma operator
+  for each exp of gatherRecursiveAll statements, .type is "AssignmentExpression" or .type is "UpdateExpression"
+    checkValidLHS exp.assigned
+
+    function extractAssignment(lhs: ASTNodeObject)
+      expr .= lhs
+      while expr.type is "ParenthesizedExpression"
+        expr = expr.expression
+      if expr.type is like "AssignmentExpression", "UpdateExpression"
+        if expr.type is "UpdateExpression" and
+            expr.children[0] is expr.assigned  // postfix update
+          pre.push("(")
+          post.push([", ", lhs, ")"])
+        else
+          pre.push(["(", lhs, ", "])
+          post.push(")")
+        // TODO: use ref to avoid duplicating function calls
+        return expr.assigned
+
+    const pre = [], post = []
+    switch exp.type
+      when "AssignmentExpression"
+        continue unless exp.lhs
+        for each lhsPart of exp.lhs
+          if newLhs := extractAssignment(lhsPart[1])
+            lhsPart[1] = newLhs
+      when "UpdateExpression"
+        if newLhs := extractAssignment(exp.assigned)
+          i := exp.children.indexOf(exp.assigned)
+          exp.assigned = exp.children[i] = newLhs
+    exp.children.unshift(...pre) if pre#
+    exp.children.push(...post) if post#
+    // TODO: need to make this a parenthesized expression when when we add parens
+
+    if exp.type is "UpdateExpression"
+      { assigned } := exp
+      ref := makeRef()
+      newMemberExp := unchainOptionalMemberExpression assigned, ref, (children) =>
+        exp.children.map & is assigned ? children : &
+
+      if newMemberExp !== assigned
+        if newMemberExp.usesRef
+          newMemberExp.hoistDec = {
+            type: "Declaration"
+            children: ["let ", ref]
+            names: []
+          }
+        replaceNode exp, newMemberExp
+
+  for each exp of gatherRecursiveAll statements, .type is "AssignmentExpression"
+    continue unless exp.names is null
+    let { lhs: $1, expression: $2 } = exp, tail = [], len = $1.length
+
+    // Extract StatementExpression into containing block,
+    // if this assignment is at the statement level,
+    // the last operator isn't special, and
+    // no operator might shortcut
+    if blockContainingStatement(exp) and !$1.-1?.-1?.special and
+       not isShortCircuitOp($1.-1?.-1)
+      if ref := prependStatementExpressionBlock(
+        {type: "Initializer", expression: $2, children: [undefined, undefined, $2]}
+        exp
+      )
+        replaceNode $2, ref, exp
+        // @ts-ignore
+        $2 = ref
+
+    // identifier=, xor=, ++=
+    if $1.some &.-1.special
+      if ($1.length !== 1) throw new Error("Only one assignment with id= is allowed")
+      [, lhs, , op] := $1[0]
+      { call, omitLhs } := op
+      // Wrap right-hand side with call
+      index := exp.children.indexOf($2)
+      if (index < 0) throw new Error("Assertion error: exp not in AssignmentExpression")
+      exp.children.splice index, 1,
+        exp.expression = $2 = [call, "(", lhs, ", ", $2, ")"]
+      if omitLhs
+        replaceNode exp, $2
+        continue
+
+    // Force parens around destructuring object assignments
+    // Walk from left to right the minimal number of parens are added and enclose all destructured assignments
+    // TODO: Could validate some lhs ecmascript rules here if we wanted to
+    wrapped .= false
+    i .= 0
+    while i < len
+      lastAssignment := $1[i++]
+      [, lhs, , op] := lastAssignment
+      continue unless op.token is "="
+
+      if lhs.type is like "ObjectExpression", "ObjectBindingPattern"
+        // Wrap with parens to distinguish from braced blocks
+        unless wrapped
+          wrapped = true
+          lhs.children.splice(0, 0, "(")
+          tail.push(")")
+
+    refsToDeclare := new Set<ASTRef>
+
+    // Walk from right to left to handle splices
+    i = len - 1
+    while i >= 0
+      lastAssignment := $1[i]
+
+      if lastAssignment[3].token is "="
+        lhs := lastAssignment[1]
+
+        // Splice assignment
+        if lhs.type is "MemberExpression"
+          members := lhs.children
+          lastMember := members[members.length - 1]
+
+          // TODO: this is kind of bonkers
+          if lastMember.type is "SliceExpression"
+            const { start, end, children: c } = lastMember
+            // TODO: don't lose as many source mappings
+            c[0].token = ".splice("
+            c[1] = start
+            c[2] = ", "
+            if (end)
+              c[3] = [makeLeftHandSideExpression(end), " - ", makeLeftHandSideExpression(start)]
+            else
+              c[3] = ["1/0"]
+            c[4] = [", ...", $2]
+            c[5] = ")"
+
+            // Remove assignment token
+            lastAssignment.pop()
+            if (isWhitespaceOrEmpty(lastAssignment[2])) lastAssignment.pop()
+            // TODO: this only works for the last assignment, not multiple splice assignments, or splice assignments earlier in the chain
+            if $1.length > 1
+              throw new Error("Not implemented yet! TODO: Handle multiple splice assignments")
+
+            exp.children = [$1]
+            exp.names = []
+            break
+        else if lhs is like {type: "CallExpression", children: [^peekHelperRef("rslice"), ...]}
+          lhs.children.push
+            type: "Error"
+            message: "Slice range cannot be decreasing in assignment"
+          break
+
+        else if lhs.type is like "ObjectBindingPattern", "ArrayBindingPattern", "NamedBindingPattern"
+          processBindingPatternLHS(lhs, tail)
+          // Extract temp refs that need to be declared from lhs
+          gatherRecursiveAll(lhs, .type is "Ref").forEach refsToDeclare@add
+
+        // NOTE: currently not processing any non-binding pattern ObjectExpression or ArrayExpressions
+        // This might not be correct in all situations, esp BindingPatterns nested inside ObjectExpressions
+      i--
+
+    // Handle optional chain ?. in lhs of assignments
+    i = len - 1
+    optionalChainRef := makeRef()
+    while i >= 0
+      assignment := $1[i]
+      [ws1, lhs, ws2, op] := assignment
+
+      if lhs.type is "MemberExpression" or lhs.type is "CallExpression"
+        newMemberExp := unchainOptionalMemberExpression lhs, optionalChainRef, (children) =>
+          // NOTE: This only executes when lhs contains chains
+          // this mutates the assignments array to account for the parts moved into the conditionals
+          assigns := $1.splice(i + 1, len - 1 - i)
+          $1.pop()
+          [ws1, ...children, ws2, op, ...assigns, $2]
+
+        if newMemberExp !== lhs
+          if newMemberExp.usesRef
+            exp.hoistDec =
+              type: "Declaration"
+              children: ["let ", optionalChainRef]
+              names: []
+
+          replaceNode $2, newMemberExp
+          $2 = newMemberExp
+
+      i--
+
+    // Add any additional binding refs that need to be declared to our hoisted declarations
+    if refsToDeclare.size
+      if exp.hoistDec
+        exp.hoistDec.children.push [...refsToDeclare].map [",", &]
+      else
+        exp.hoistDec =
+          type: "Declaration"
+          children: ["let ", [...refsToDeclare].map (r, i) => i ? [",", r] : r]
+          names: []
+
+    // Gather all identifier names from the lhs array
+    exp.names = $1.flatMap(([, l]) => l.names or [])
+
+    if tail#
+      index := exp.children.indexOf($2)
+      if (index < 0) throw new Error("Assertion error: exp not in AssignmentExpression")
+      exp.children.splice(index + 1, 0, ...tail)
+
+function unchainOptionalMemberExpression(exp: MemberExpression | CallExpression, ref: ASTRef, innerExp: (exp) => ASTNode)
+  j .= 0
+  { children } := exp
+  usesRef .= false
+  conditions := []
+
+  // NOTE: not caching length because the array mutates inside
+  while j < children.length
+    child := children[j]
+    type := child?.type
+    hasOptional .= false
+
+    switch type
+      when "PropertyAccess"
+        if child.dot?.optional
+          hasOptional = true
+          child.dot.children.shift()
+          child.dot.optional = false
+      when "Call", "Index"
+        if child.optional
+          hasOptional = true
+          child.children.shift()
+          child.optional = undefined
+
+    if hasOptional
+      let base
+
+      if j > 1 or needsRef children[0]
+        usesRef = true
+        base = makeLeftHandSideExpression
+          type: "AssignmentExpression"
+          children: [ref, " = ", children.splice(0, j)]
+
+        base.parent = child
+        children.unshift ref
+
+        j = 0
+      else
+        base = children[0]
+
+      conditions.push [ base, " != null" ]
+
+    j++
+
+  if l := conditions.length
+    cs := flatJoin conditions, " && "
+
+    {
+      ...exp
+      children: [...cs, " ? ", innerExp(children), " : void 0"]
+      usesRef
+    }
+  else // Unchanged
+    exp
+
+function attachPostfixStatementAsExpression(exp, post: [WSNode, IfStatement | IterationStatement | DoStatement | ForStatement])
+  postfixStatement := post[1]
+
+  switch postfixStatement.type
+    when "ForStatement", "IterationStatement", "DoStatement"
+      statement := addPostfixStatement(exp, ...post)
+      return {
+        type: "IterationExpression",
+        children: [statement],
+        block: statement.block,
+        statement,
+        generator: statement.generator,
+      }
+    when "IfStatement"
+      return expressionizeIfStatement { ...postfixStatement, then: exp }
+    else
+      throw new Error("Unknown postfix statement")
+
+function processTypes(node: ASTNode)
+  // T? -> T | undefined; T?? -> T | undefined | null; T! -> NonNullable<T>
+  for each unary of gatherRecursiveAll node, .type is "TypeUnary"
+    // Start at last suffix, and allow skipping more than one
+    suffixIndex .= unary.suffix# - 1
+    while suffixIndex >= 0
+      suffix := unary.suffix[suffixIndex]
+      switch suffix
+        {token: "?"}
+          count .= 0
+          while unary.suffix[suffixIndex] is like {token: "?"}
+            unary.suffix.splice suffixIndex--, 1
+            count++
+          // Remove pointless non-null assertions before question marks
+          while unary.suffix[suffixIndex] is like {type: "NonNullAssertion"}
+            unary.suffix.splice suffixIndex--, 1
+          // Prefix operations move outside
+          {parent, prefix} := unary
+          unary.prefix = []
+          unary.children = unary.children.filter (is not prefix)
+          // Later suffix operations move outside
+          outer := unary.suffix.splice suffixIndex+1, Infinity
+          // Remove inner UnaryType wrapper if no remaining suffix,
+          // so we can correctly decide whether to parenthesize
+          space := getTrimmingSpace unary
+          let replace: TypeNode
+          if unary.parent?.type is "TypeElement" and not unary.parent.name
+            // Leave one ? inside an unnamed element of type tuple
+            if count is 1
+              unary.suffix.splice suffixIndex+1, 0, suffix // put back
+              continue
+            inplaceInsertTrimmingSpace unary, ""
+            t := parenthesizeType if unary.suffix# then unary else unary.t
+            replace = [
+              space
+              "("
+              t
+              " | null)"
+              suffix
+            ]
+          else
+            inplaceInsertTrimmingSpace unary, ""
+            t := parenthesizeType if unary.suffix# then unary else unary.t
+            replace = makeNode
+              type: "TypeParenthesized"
+              ts: true
+              children: [
+                space
+                "("
+                t
+                count is 1 ? " | undefined" : " | undefined | null"
+                ")"
+              ]
+          if prefix# or outer#
+            replace = makeNode {
+              type: "TypeUnary"
+              ts: true
+              t: replace
+              prefix
+              suffix: outer
+              children: [ prefix, replace, outer ]
+            }
+          replaceNode unary, replace, parent
+        {type: "NonNullAssertion"}
+          while unary.suffix[suffixIndex] is like {type: "NonNullAssertion"}
+            unary.suffix.splice suffixIndex--, 1
+          // Remove pointless non-null assertions before question marks
+          while unary.suffix[suffixIndex] is like {token: "?"}
+            unary.suffix.splice suffixIndex--, 1
+          // Prefix operations move outside
+          {parent, prefix} := unary
+          unary.prefix = []
+          unary.children = unary.children.filter (is not prefix)
+          // Later suffix operations move outside
+          outer := unary.suffix.splice suffixIndex+1, Infinity
+          // Remove inner UnaryType wrapper if no remaining suffix
+          space := getTrimmingSpace unary
+          inplaceInsertTrimmingSpace unary, ""
+          t := if unary.suffix# then unary else unary.t
+          arg: TypeArgument := makeNode {
+            type: "TypeArgument"
+            ts: true
+            t
+            children: [t]
+          }
+          argArray := [arg]
+          args: TypeArguments := makeNode
+            type: "TypeArguments"
+            ts: true
+            args: argArray
+            children: ["<", argArray, ">"]
+          replace: ASTNode .= makeNode {
+            type: "TypeIdentifier"
+            raw: "NonNullable"
+            args
+            children: [
+              space
+              "NonNullable"
+              args
+            ]
+          }
+          if prefix# or outer#
+            replace = makeNode {
+              type: "TypeUnary"
+              ts: true
+              t: replace
+              prefix
+              suffix: outer
+              children: [ prefix, replace, outer ]
+            }
+          replaceNode unary, replace, parent
+        else
+          suffixIndex--
+
+/**
+Wrap any remaining statement expressions in IIFE.
+*/
+function processStatementExpressions(statements: StatementTuple[]): void
+  for each exp of gatherRecursiveAll statements, .type is "StatementExpression"
+    { maybe, statement } := exp
+
+    // `maybe` says not to wrap if we're at the statement level of block
+    if (maybe or statement.type is "ThrowStatement") and
+       blockContainingStatement exp
+      replaceNode exp, statement
+      continue
+
+    switch statement.type
+      when "IfStatement"
+        if expression := expressionizeIfStatement(statement)
+          replaceNode statement, expression, exp
+        else
+          replaceNode statement, wrapIIFE([["", statement]]), exp
+      when "IterationExpression"
+        if statement.subtype is "ComptimeStatement"
+          replaceNode statement,
+            expressionizeComptime statement.statement as ComptimeStatement
+            exp
+        // else do nothing, handled separately currently
+      else
+        replaceNode statement, wrapIIFE([["", statement]]), exp
+
+function processNegativeIndexAccess(statements: StatementTuple[]): void
+  gatherRecursiveAll(statements, (n) => n.type is "NegativeIndex")
+    .forEach (exp): void =>
+      { children } := exp.parent!
+
+      let start = 0
+      start++ while start < children# and isWhitespaceOrEmpty children[start]
+      index := children.indexOf(exp)
+
+      let ref, subexp
+      if index is start+1  // first access
+        child := children[start]
+        ref = maybeRef(child)
+        if ref !== child
+          subexp = children.splice start, 1
+      else if index > start+1
+        ref = makeRef()
+        subexp = children.splice start, index - start
+      else
+        throw new Error("Invalid parse tree for negative index access")
+
+      if subexp
+        { refAssignment } := makeRefAssignment ref, subexp
+        children.splice start, 0, makeLeftHandSideExpression refAssignment
+        refAssignment.parent = exp
+
+      exp.len.children = [
+        ref,
+        ".length"
+      ]
+
+function processFinallyClauses(statements: StatementTuple[]): void
+  for each let f of gatherRecursiveAll statements, ($): $ is FinallyClause => (
+    $.type is "FinallyClause" and $.parent?.type is not "TryStatement"
+  )
+    unless { block, index } := blockContainingStatement f
+      throw new Error "finally clause must be inside try statement or block"
+    indent := block.expressions[index][0]
+    expressions := block.expressions[>index]
+    t: BlockStatement := makeNode {
+      type: "BlockStatement"
+      expressions
+      children: [ "{", expressions, "}" ]
+      bare: false
+    }
+    f = prepend(" ", f) as FinallyClause
+    tuple: StatementTuple := [indent,
+      makeNode
+        type: "TryStatement"
+        blocks: [ t ] // omit f to avoid implicit return
+        children: [ "try ", t, f ]
+        parent: block
+    ]
+    block.expressions[>=index] = [tuple]
+
+// Handle `break/continue loop/while/for/do` to add necessary labels
+// See also `processBreakContinueWith` which handles `break/continue with`
+function processBreaksContinues(statements: StatementTuple[]): void
+  for control of gatherRecursive(statements,
+    ($: ASTNodeObject): $ is BreakStatement | ContinueStatement => Boolean
+      ($.type is "BreakStatement" or $.type is "ContinueStatement") and
+      $.label?.special
+  )
+    label := control.label!
+    special := label.special!
+
+    // Find nearest containing loop/while/for/do iteration statement
+    { ancestor } := findAncestor control,
+      ($: ASTNodeObject): $ is IterationStatement | ForStatement =>
+        special is "for" ? $.type is "ForStatement" : (and)
+          $.type is "IterationStatement"
+          $.subtype.startsWith special
+          // in particular, special = "do" matches "do-while" and "do-until"
+      isFunction // don't go outside the current function
+    unless ancestor?
+      control.children.push
+        type: "Error"
+        message: `No matching '${special}' iteration found above '${control.type.toLowerCase().replace "statement", ""} ${special}'`
+      continue
+    { parent } .= ancestor
+
+    // Wrap loop with label if there isn't already one
+    unless parent?.type is "LabelledStatement"
+      ref := makeRef `_${special.replace "-", "_"}`
+      label: Label := makeNode
+        type: "Label"
+        name: ref
+        children: [ ref, ":" ]
+      replaceNode ancestor,
+        makeNode {}
+          type: "LabelledStatement"
+          label
+          statement: ancestor
+          children: [ label, " ", ancestor ]
+        parent
+      parent = ancestor.parent as LabelledStatement
+
+    label.children.push label.name = parent.label.name
+    delete label.special
+
+function processCoffeeClasses(statements: StatementTuple[]): void
+  for each ce of gatherRecursiveAll statements, .type is "ClassExpression"
+    { expressions } := ce.body
+    indent := expressions[0]?[0] ?? '\n'
+
+    autoBinds := expressions.filter (&[1] as MethodDefinition?)?.autoBind
+    if autoBinds#
+      let construct: MethodDefinition?
+      for [, c] of expressions
+        if c is like {type: "MethodDefinition", name: "constructor"} and c.block
+          construct = c
+          break
+      unless construct
+        parametersList: never[] := []
+        parameters: ParametersNode :=
+          type: "Parameters"
+          children: [parametersList]
+          parameters: parametersList
+          names: []
+        signature: FunctionSignature := {}
+          type: "MethodSignature"
+          children: [ "constructor(", parameters, ")" ]
+          parameters
+          modifier: {}
+          returnType: undefined
+        block := makeEmptyBlock()
+        construct = {}
+          ...signature
+          type: "MethodDefinition"
+          name: "constructor"
+          block
+          signature
+          children: [ ...signature.children, block ]
+        expressions.unshift [indent, construct]
+      index := findSuperCall construct.block
+      construct.block.expressions.splice index+1, 0,
+        ...for each [, a] of autoBinds
+          [indent, ["this.", a.name, " = this.", a.name, ".bind(this)"], ";"]
+
+    public_static_function_assignments := expressions.filter((&[1]?.type is "CoffeeClassPublic") && (&[1].assignment?.expression?.type is "FunctionExpression")).map &[1].assignment
+    for public_static_function_assignment of public_static_function_assignments
+      id := public_static_function_assignment.lhs[0][1]
+      replaceNode public_static_function_assignment, convertFunctionToMethod(id, public_static_function_assignment.expression)
+
+    public_static_arrow_function_assignments := expressions.filter((&[1]?.type is "CoffeeClassPublic") && (&[1].assignment?.expression?.type is "ArrowFunction")).map &[1].assignment
+    for public_static_arrow_function_assignment of public_static_arrow_function_assignments
+      id := public_static_arrow_function_assignment.lhs[0][1]
+      replaceNode public_static_arrow_function_assignment, convertArrowFunctionToMethod(id, public_static_arrow_function_assignment.expression)
+
+    // In a CoffeeScript class, `x = y` makes a private variable x visible
+    // only within the class scope only, implemented via IIFE wrapper
+    privates := expressions.filter &[1]?.type is "CoffeeClassPrivate"
+    continue unless privates#
+
+    { parent } := ce
+
+    // Remove privates from class body, in place
+    for i of [expressions# >.. 0]
+      if expressions[i][1]?.type is "CoffeeClassPrivate"
+        expressions.splice i, 1
+
+    wrapped .= wrapIIFE
+      . ...privates
+      . [indent, wrapWithReturn ce]
+
+    // Outer assignment
+    if { binding } .= ce
+      binding = trimFirstSpace binding
+      wrapped = makeNode {
+        type: "AssignmentExpression"
+        children: [binding, " = ", wrapped]
+        lhs: binding as any // TODO: incorrect shape
+        assigned: binding
+        expression: wrapped as CallExpression
+        names: [ce.name]
+      }
+
+    replaceNode ce, wrapped, parent
+
+function processProgram(root: BlockStatement): void
+  state := getState()
+  config := getConfig()
+
+  // invariants
+  assert.equal state.forbidBracedApplication#, 1, "forbidBracedApplication"
+  assert.equal state.forbidClassImplicitCall#, 1, "forbidClassImplicitCall"
+  assert.equal state.forbidIndentedApplication#, 1, "forbidIndentedApplication"
+  assert.equal state.forbidNestedBinaryOp#, 1, "forbidNestedBinaryOp"
+  assert.equal state.forbidNewlineBinaryOp#, 1, "forbidNewlineBinaryOp"
+  assert.equal state.forbidTrailingMemberProperty#, 1, "forbidTrailingMemberProperty"
+  assert.equal state.JSXTagStack#, 1, "JSXTagStack"
+
+  addParentPointers(root)
+
+  { expressions: statements } .= root
+
+  processPlaceholders(statements)
+  processNegativeIndexAccess(statements)
+  processTypes(statements)
+  processDeclarationConditions(statements)
+  processPipelineExpressions(statements)
+  processDeclarations(statements)
+  processAssignments(statements)
+  processStatementExpressions(statements)
+  processPatternMatching(statements)
+  processIterationExpressions(statements)
+  processFinallyClauses(statements)
+  processBreaksContinues(statements)
+
+  // Now that e.g. `do*` and `async do` have been processed
+  // (processIterationExpressions), we can detect top-level await/yield
+  root.topLevelAwait = hasAwait statements
+  root.topLevelYield = hasYield statements
+  let rootIIFE: ASTNode
+  if config.iife or config.repl
+    // Avoid top-level await if code is async (same as CoffeeScript),
+    // and avoid top-level yield* if code is a generator,
+    // so that code works in CommonJS environment and so REPL can eval it
+    rootIIFE = wrapIIFE root.expressions, root.topLevelAwait,
+      if root.topLevelYield then "*"
+    statements = [['', rootIIFE]]
+    root.children = root.children.map & is root.expressions ? statements : &
+    root.expressions = statements
+
+  // Hoist hoistDec attributes to actual declarations.
+  // NOTE: This should come after iteration expressions get processed
+  // into IIFEs.
+  hoistRefDecs(statements)
+
+  // Adding implicit returns should happen after hoisting any ref declarations
+  // so their target node can be found in the block without being inside a return
+  // and after IIFE wrapper
+  processFunctions(statements, config)
+
+  processCoffeeClasses(statements) if config.coffeeClasses
+
+  // Insert prelude, dropping any actually unused helpers
+  statements.unshift ...extractPreludeFor statements
+
+  if config.autoLet
+    createConstLetDecs(statements, [], "let")
+  else if config.autoConst
+    createConstLetDecs(statements, [], "const")
+  else if config.autoVar
+    createVarDecs(root, [])
+
+  // REPL wants all top-level variables hoisted to outermost scope
+  processRepl root, rootIIFE if config.repl
+
+  // Automatic semicolon insertion
+  processBlocks(statements)
+
+  populateRefs(statements)
+  adjustAtBindings(statements)
+
+  // Run synchronous versions of async steps in case we're in sync mode
+  if getSync()
+    processComptime(statements)
+
+async function processProgramAsync(root: BlockStatement): Promise<void>
+  // Called only if we're in async mode
+  { expressions: statements } := root
+  await processComptime(statements)
+
+function processRepl(root: BlockStatement, rootIIFE: ASTNode): void
+  topBlock :=
+    gatherRecursive(rootIIFE!, .type is "BlockStatement")[0]
+  i .= 0
+  // Hoist top-level declarations and all var declarations
+  for each decl of gatherRecursiveWithinFunction topBlock, .type is "Declaration"
+    continue unless decl.names?# // skip 'let ref'
+    if decl.parent is topBlock or decl.decl is "var"
+      decl.children.shift() // remove const/let/var
+      if decl.bindings.0?.pattern?.type is "ObjectBindingPattern"
+        // If first pattern is braced, need to wrap in parens
+        decl.children.unshift "("
+        decl.children.push ")"
+      root.expressions.splice i++, 0, ["", `var ${decl.names.join ','}`, ";"]
+  // Hoist all function declarations, and hoist values when top-level
+  for each func of gatherRecursive topBlock, .type is "FunctionExpression"
+    if func.name and func.parent?.type is "BlockStatement" // declaration
+      if func.parent is topBlock
+        // Top-level => hoist to beginning
+        replaceNode func, undefined
+        root.expressions.splice i++, 0, ["", func]
+        func.parent = root
+      else
+        func.children.unshift func.name, "="
+        root.expressions.splice i++, 0, ["", `var ${func.name}`, ";"]
+  // Hoist top-level class declarations (like `let`)
+  for each classExp of gatherRecursiveWithinFunction topBlock, .type is "ClassExpression"
+    if classExp.name and classExp.parent is topBlock or classExp.parent is like {type: "ReturnStatement", parent: ^topBlock}
+      classExp.children.unshift classExp.name, "="
+      root.expressions.splice i++, 0, ["", `var ${classExp.name}`, ";"]
+
+function processPlaceholders(statements: StatementTuple[]): void
+  placeholderMap := new Map<ASTNodeObject, (Placeholder)[]>()
+  liftedIfs := new Set<IfStatement>()
+
+  for each exp of gatherRecursiveAll statements, .type is "Placeholder"
+    let ancestor: ASTNodeObject?
+    if exp.subtype is "."
+      // Partial placeholder . lifts to the nearest call expression,
+      // including the call itself and any surrounding unary operations.
+      { ancestor } = findAncestor exp,
+        ($): $ is Call => $.type is "Call" and
+        not ($.parent as CallExpression?)?.implicit
+      ancestor = ancestor?.parent
+      while ancestor?.parent? and ancestor.parent.type is like "UnaryExpression", "NewExpression", "AwaitExpression", "ThrowStatement", "StatementExpression"
+        ancestor = ancestor.parent
+      unless ancestor
+        replaceNode exp,
+          type: "Error"
+          message: 'Partial placeholder . outside of call expression'
+        return
+    else // "&"
+      // Ampersand placeholder & lifts to nearest call expression,
+      // excluding the call itself, or else to the nearest block statement.
+      let child
+      let implicitLift: boolean?
+      { ancestor, child } = findAncestor exp, (ancestor, child) =>
+        // Skip this node of its child told us to
+        prevImplicitLift := implicitLift
+        {implicitLift} = ancestor as Declaration
+        return if prevImplicitLift
+
+        {type} := ancestor
+        if type is "IfStatement"
+          liftedIfs.add ancestor
+        (or)
+          type is "Call" and not (ancestor.parent as CallExpression?)?.implicit
+          // Block, except for if/else blocks when condition already lifted
+          type is "BlockStatement" and
+            not (ancestor.parent is like {type: "IfStatement"} and liftedIfs.has ancestor.parent as IfStatement) and
+            not (ancestor.parent is like {type: "ElseClause", parent: {type: "IfStatement"}} and liftedIfs.has ancestor.parent!.parent as IfStatement)
+          type is "PipelineExpression"
+          // Declaration
+          type is "Initializer"
+          // Right-hand side of assignment
+          type is "AssignmentExpression" and
+            findChildIndex(ancestor, child) is
+            ancestor.children.indexOf ancestor.expression
+          type is "ReturnStatement"
+          type is "YieldExpression"
+      switch ancestor?.type
+        when "Call"
+          i := findChildIndex ancestor.args, child
+          if i >= 0
+            ancestor.args[i] = maybeWrap ancestor.args[i], ancestor
+            ancestor = ancestor.args[i] as ASTNodeObject
+          else
+            ancestor = undefined
+        when "BlockStatement"
+          i := findChildIndex ancestor.expressions, child
+          if i >= 0
+            ancestor.expressions[i][1] = maybeWrap ancestor.expressions[i][1], ancestor
+            ancestor = ancestor.expressions[i][1] as ASTNodeObject
+          else
+            ancestor = undefined
+        when "PipelineExpression"
+          i := findChildIndex ancestor, child
+          if i is 1  // head
+            // & in pipeline head (& |> ...) wraps function around entire pipeline
+            ancestor = ancestor
+          else if i is 2  // tail item
+            j := findChildIndex ancestor.children[i], child
+            ancestor.children[i][j][3] = maybeWrap ancestor.children[i][j][3], ancestor
+            ancestor = ancestor.children[i][j][3] as ASTNodeObject
+          else
+            ancestor = undefined
+        when "AssignmentExpression", "Initializer", "ReturnStatement", "YieldExpression"
+          i := findChildIndex ancestor, child
+          if i >= 0 and ancestor.expression is ancestor.children[i]
+            ancestor.expression = ancestor.children[i] = maybeWrap ancestor.expression, ancestor
+            ancestor = ancestor.expression as ASTNodeObject
+          else
+            ancestor = undefined
+      unless ancestor
+        replaceNode exp,
+          type: "Error"
+          message: 'Ampersand placeholder & outside of block'
+
+    if ancestor?
+      if placeholderMap.has ancestor
+        placeholderMap.get(ancestor)!.push exp
+      else
+        placeholderMap.set ancestor, [exp]
+
+  for [ancestor, placeholders] of placeholderMap
+    ref .= makeRef "$"
+
+    let typeSuffix: TypeSuffix?
+    for each placeholder of placeholders
+      // Take first typeSuffix (hope any additional type suffixes are identical)
+      typeSuffix ??= placeholder.typeSuffix
+      // NOTE: Replace last child instead of placeholder itself
+      // so that we preserve any whitespace that's been glommed as a prefix
+      placeholder.children.-1 = ref
+
+    // Function wrapping can change parent; use original for replaceNode
+    {parent} := ancestor
+    body := maybeUnwrap ancestor
+    fnExp .= makeAmpersandFunction { ref, typeSuffix, body }
+
+    // Arrow function needs to be wrapped in parens in many contexts.
+    // This doesn't happen with "&", but can with ".".
+    let outer: boolean?
+    switch parent?.type
+      when "Argument"
+        outer = ancestor is parent.expression
+      when "Call" // probably no longer necessary now that we have Argument wrappers
+        outer = ancestor is
+          parent.args[findChildIndex parent.args, ancestor]
+      when "BlockStatement"
+        outer = ancestor is
+          parent.expressions[findChildIndex parent.expressions, ancestor][1]
+      when "PipelineExpression"
+        i := findChildIndex parent, ancestor
+        outer =
+          if i is 1  // head
+            ancestor is parent.children[i]
+          else if i is 2  // tail item
+            ancestor is
+            parent.children[i][findChildIndex parent.children[i], ancestor][3]
+      when "AssignmentExpression", "Initializer", "ReturnStatement", "YieldExpression"
+        outer = ancestor is parent.expression
+    unless outer
+      fnExp = makeLeftHandSideExpression fnExp
+
+    replaceNode ancestor, fnExp, parent
+
+    // Preserve body property of any containing ampersand block
+    // so that we can unwrap in pipeline
+    if parent is like {type: "BlockStatement", parent: {type: "ArrowFunction", ampersandBlock: true, ^body}}
+      parent.parent.body = fnExp
+
+    // Move a leading space outside the function wrapper
+    if ws := getTrimmingSpace body
+      inplaceInsertTrimmingSpace body, ""
+      inplacePrepend ws, fnExp
+
+  return
+
+function reorderBindingRestProperty(props)
+  const names = props.flatMap((p) => p.names)
+
+  let restIndex = -1
+  let restCount = 0
+  props.forEach(({ type }, i) => {
+    if (type is "BindingRestProperty") {
+      if (restIndex < 0) restIndex = i
+      restCount++
+    }
+  })
+
+  if restCount is 0
+    return {
+      children: props
+      names
+    }
+
+  let after = props.slice(restIndex + 1)
+  let rest = props[restIndex]
+
+  props = props.slice(0, restIndex)
+
+  // Swap delimiters of last property and rest so that an omitted trailing comma doesn't end up in the middle
+  if after.length
+    const {delim: restDelim} = rest,
+      lastAfterProp = after[after.length - 1],
+      {delim: lastDelim, children: lastAfterChildren} = lastAfterProp
+
+    rest = {
+      ...rest,
+      delim: lastDelim,
+      children: [...rest.children.slice(0, -1), lastDelim],
+    }
+    after = [
+      ...after.slice(0, -1),
+      {
+        ...lastAfterProp,
+        delim: restDelim,
+        children: [...lastAfterChildren.slice(0, -1), restDelim]
+      }
+    ]
+
+  // JS forbids trailing comma after rest property
+  if Array.isArray(rest.delim) and rest.delim.-1?.token is ","
+    // Can't mutate delim in case of cached nodes
+    rest.delim = rest.delim.slice(0, -1)
+    rest.children = [ ...rest.children.slice(0, -1), rest.delim ]
+
+  children := [...props, ...after, rest]
+
+  if restCount > 1
+    children.push
+      type: "Error",
+      message: "Multiple rest properties in object pattern",
+
+  return { children, names }
+
+function typeOfJSX(node, config)
+  switch node.type
+    when "JSXElement"
+      typeOfJSXElement node, config
+    when "JSXFragment"
+      typeOfJSXFragment node, config
+
+function typeOfJSXElement(node, config)
+  if config.solid
+    if config.server and not config.client  // server only
+      return ["string"]
+    { tag } := node
+    // "An intrinsic element always begins with a lowercase letter,
+    // and a value-based element always begins with an uppercase letter."
+    // [https://www.typescriptlang.org/docs/handbook/jsx.html]
+    clientType :=
+      tag[0] is tag[0].toLowerCase() ?
+        [ getHelperRef("IntrinsicElements"), '<"', tag, '">' ] :
+        [ 'ReturnType<typeof ', tag, '>' ]
+    if config.server  // isomorphic code for client + server
+      return [ "string", " | ", clientType ]
+    else  // client only (default)
+      return clientType
+
+function typeOfJSXFragment(node, config)
+  if config.solid
+    type .= []
+    let lastType
+    for child of node.jsxChildren
+      switch child.type
+        when "JSXText"
+          // Solid combines multiple consecutive texts into one string
+          unless lastType is "JSXText"
+            type.push "string"
+        when "JSXElement"
+          type.push typeOfJSXElement child, config
+        when "JSXFragment"
+          // Solid flattens fragments of fragments into one array.
+          type.push ...typeOfJSXFragment child, config
+        when "JSXChildExpression"
+          // Solid discards empty expressions
+          if child.expression
+            type.push [ "typeof ", child.expression ]
+        else
+          throw new Error `unknown child in JSXFragment: ${JSON.stringify(child)}`
+      lastType = child.type
+    // Solid doesn't wrap single fragment child in an array
+    if type# is 1
+      return type[0]
+    else
+      type = type.flatMap [&, ", "]
+      type.pop() // remove trailing comma
+      return [ "[", type, "]" ]
+
+export {
+  addPostfixStatement
+  adjustBindingElements
+  adjustIndexAccess
+  append
+  attachPostfixStatementAsExpression
+  blockWithPrefix
+  braceBlock
+  bracedBlock
+  convertArrowFunctionToMethod
+  convertFunctionToMethod
+  convertNamedImportsToObject
+  convertObjectToJSXAttributes
+  convertWithClause
+  dedentBlockString
+  dedentBlockSubstitutions
+  deepCopy
+  duplicateBlock
+  dynamizeImportDeclaration
+  dynamizeImportDeclarationExpression
+  expressionizeTypeIf
+  forRange
+  gatherBindingCode
+  gatherBindingPatternTypeSuffix
+  gatherRecursive
+  gatherRecursiveAll
+  gatherRecursiveWithinFunction
+  getHelperRef
+  getIndentLevel
+  getPrecedence
+  getTrimmingSpace
+  hasAwait
+  hasExportDeclaration
+  hasImportDeclaration
+  hasTrailingComment
+  hasYield
+  insertTrimmingSpace
+  isComma
+  isEmptyBareBlock
+  isFunction
+  isWhitespaceOrEmpty
+  lastAccessInCallExpression
+  literalValue
+  makeAmpersandFunction
+  makeEmptyBlock
+  makeExpressionStatement
+  makeGetterMethod
+  makeLeftHandSideExpression
+  makeRef
+  maybeRef
+  maybeRefAssignment
+  modifyString
+  negateCondition
+  precedenceCustomDefault
+  precedenceStep
+  prepend
+  processAssignmentDeclaration
+  processBinaryOpExpression
+  processCallMemberExpression
+  processCoffeeDo
+  processCoffeeInterpolation
+  processForInOf
+  processProgram
+  processProgramAsync
+  processRangeExpression
+  processTryBlock
+  processUnaryExpression
+  processUnaryNestedExpression
+  quoteString
+  reorderBindingRestProperty
+  replaceNode
+  replaceNodes
+  skipImplicitArguments
+  stripTrailingImplicitComma
+  trimFirstSpace
+  typeOfJSX
+  wrapIIFE
+  wrapTypeInPromise
+}

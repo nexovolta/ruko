@@ -62,39 +62,56 @@
         },
         {
           "applyEndPatternLast": true,
-          "begin": "^\\s*(%)(define|undef)\\b",
+          "begin": "^\\s*(%)(define)\\b\\s+",
           "end": "$",
           "name": "meta.directive.ruko",
-          "captures": {
+          "beginCaptures": {
             "1": {"name": "punctuation.definition.directive.ruko"},
             "2": {"name": "keyword.control.directive.ruko"}
           },
           "patterns": [
-            {"include": "#regexp-patterns"},
             {
-              "begin": "(:)\\s*",
-              "end": "\\s*([,;])|$",
-              "name": "string.regexp.replace.ruko",
-              "captures": {"1": {"name": "punctuation.definition.regexp.ruko"}},
+              "begin": "(?<=^\\s*%define\\b\\s+)(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:(?:(?:ca|el|rai|u)s|(?:modu|sty|whi)l|(?:igno|whe)r|(?:r|sp)ac|(?:un)?saf|(?:sco|ty)p|hid|mov|quot)e|(?:[gls]e|(?:(?:in)?o|m)u|(?:aw|tr)ai|(?:obje|stru)c|asser|cons|no|scrip)t|(?:(?:[fn]|act|err|xn?)?o|(?:def|in?t|op|shad)e|va)r|(?:(?:[iou]n|go)?t|(?:re)?d|comp|ech|g|macr)o|(?:(?:beg|jo)?i|(?:uni)?o|[tw]he|ca|retur)n|(?:(?:con?|n)?impl|(?:(?:re)?t|que)r|b|cop)y|(?:(?:n?a|l?e)n|(?:gua|reco)r|(?:o|yie)l)d|(?:(?:e?v|fin|ste)a|dec?|imp)l|(?:[dr]e|(?:el)?i|of??)f|(?:h?a|(?:cl|p)as|i)s|(?:(?:[dp]r|lo)o|ski|tem)p|(?:(?:[cm]a|swi)tc|wit)h|(?:brea|chec|sin)k|(?:enu|fro|real)m|(?:exe|fun|pro)c|(?:(?:sh|thr)o|ne)w|debug|schema)\\b)((?>`(?>``|[^`])+`|\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b))(?=\\()",
+              "end": "(?=$)",
+              "beginCaptures": {
+                "1": {"name": "entity.name.constant.macro.ruko"}
+              },
               "patterns": [
-                {"include": "#back-references"},
-                {"include": "#escapes-embedded"},
                 {
-                  "begin": "\\s*(\\{)",
-                  "end": "(})\\s*",
-                  "name": "meta.interpolation.regexp.ruko",
+                  "begin": "(#?\\()\\s*",
+                  "end": "\\s*(\\))",
                   "captures": {
-                    "1": {"name": "punctuation.definition.variable.ruko"}
+                    "1": {"name": "punctuation.definition.parameters.ruko"}
                   },
                   "patterns": [
-                    {"include": "#back-references"},
-                    {"include": "#escapes-embedded"},
+                    {"include": "#lambda-patterns"},
                     {"include": "$self"}
                   ]
-                }
+                },
+                {"include": "$self"}
               ]
             },
-            {"match": ".+", "name": "meta.directive.definition.ruko"}
+            {
+              "match": "(?<=^\\s*%define\\b\\s+)(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:(?:(?:ca|el|rai|u)s|(?:modu|sty|whi)l|(?:igno|whe)r|(?:r|sp)ac|(?:un)?saf|(?:sco|ty)p|hid|mov|quot)e|(?:[gls]e|(?:(?:in)?o|m)u|(?:aw|tr)ai|(?:obje|stru)c|asser|cons|no|scrip)t|(?:(?:[fn]|act|err|xn?)?o|(?:def|in?t|op|shad)e|va)r|(?:(?:[iou]n|go)?t|(?:re)?d|comp|ech|g|macr)o|(?:(?:beg|jo)?i|(?:uni)?o|[tw]he|ca|retur)n|(?:(?:con?|n)?impl|(?:(?:re)?t|que)r|b|cop)y|(?:(?:n?a|l?e)n|(?:gua|reco)r|(?:o|yie)l)d|(?:(?:e?v|fin|ste)a|dec?|imp)l|(?:[dr]e|(?:el)?i|of??)f|(?:h?a|(?:cl|p)as|i)s|(?:(?:[dp]r|lo)o|ski|tem)p|(?:(?:[cm]a|swi)tc|wit)h|(?:brea|chec|sin)k|(?:enu|fro|real)m|(?:exe|fun|pro)c|(?:(?:sh|thr)o|ne)w|debug|schema)\\b)((?>`(?>``|[^`])+`|\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b))",
+              "captures": {"1": {"name": "entity.name.constant.macro.ruko"}}
+            },
+            {"include": "$self"}
+          ]
+        },
+        {
+          "applyEndPatternLast": true,
+          "begin": "^\\s*(%)(undef)\\b\\s+",
+          "end": "$",
+          "name": "meta.directive.ruko",
+          "beginCaptures": {
+            "1": {"name": "punctuation.definition.directive.ruko"},
+            "2": {"name": "keyword.control.directive.ruko"}
+          },
+          "patterns": [
+            {
+              "match": "(?<=^\\s*%undef\\b\\s+)(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:(?:(?:ca|el|rai|u)s|(?:modu|sty|whi)l|(?:igno|whe)r|(?:r|sp)ac|(?:un)?saf|(?:sco|ty)p|hid|mov|quot)e|(?:[gls]e|(?:(?:in)?o|m)u|(?:aw|tr)ai|(?:obje|stru)c|asser|cons|no|scrip)t|(?:(?:[fn]|act|err|xn?)?o|(?:def|in?t|op|shad)e|va)r|(?:(?:[iou]n|go)?t|(?:re)?d|comp|ech|g|macr)o|(?:(?:beg|jo)?i|(?:uni)?o|[tw]he|ca|retur)n|(?:(?:con?|n)?impl|(?:(?:re)?t|que)r|b|cop)y|(?:(?:n?a|l?e)n|(?:gua|reco)r|(?:o|yie)l)d|(?:(?:e?v|fin|ste)a|dec?|imp)l|(?:[dr]e|(?:el)?i|of??)f|(?:h?a|(?:cl|p)as|i)s|(?:(?:[dp]r|lo)o|ski|tem)p|(?:(?:[cm]a|swi)tc|wit)h|(?:brea|chec|sin)k|(?:enu|fro|real)m|(?:exe|fun|pro)c|(?:(?:sh|thr)o|ne)w|debug|schema)\\b)((?>`(?>``|[^`])+`|\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b))",
+              "captures": {"1": {"name": "entity.name.constant.macro.ruko"}}
+            }
           ]
         },
         {
@@ -110,7 +127,24 @@
         },
         {
           "applyEndPatternLast": true,
-          "begin": "^\\s*(%)(pragma|region|endregion|once)\\b",
+          "begin": "^\\s*(%)(pragma)\\b\\s+",
+          "end": "$",
+          "name": "meta.directive.ruko",
+          "beginCaptures": {
+            "1": {"name": "punctuation.definition.directive.ruko"},
+            "2": {"name": "keyword.control.directive.ruko"}
+          },
+          "patterns": [
+            {
+              "match": "(?<=^\\s*%pragma\\b\\s+)(?!(?<![]\"')`}\\w\\s](?:[!?]?\\.|[!:?]:|[-!?]>)=?)\\b(?:(?:(?:ca|el|rai|u)s|(?:modu|sty|whi)l|(?:igno|whe)r|(?:r|sp)ac|(?:un)?saf|(?:sco|ty)p|hid|mov|quot)e|(?:[gls]e|(?:(?:in)?o|m)u|(?:aw|tr)ai|(?:obje|stru)c|asser|cons|no|scrip)t|(?:(?:[fn]|act|err|xn?)?o|(?:def|in?t|op|shad)e|va)r|(?:(?:[iou]n|go)?t|(?:re)?d|comp|ech|g|macr)o|(?:(?:beg|jo)?i|(?:uni)?o|[tw]he|ca|retur)n|(?:(?:con?|n)?impl|(?:(?:re)?t|que)r|b|cop)y|(?:(?:n?a|l?e)n|(?:gua|reco)r|(?:o|yie)l)d|(?:(?:e?v|fin|ste)a|dec?|imp)l|(?:[dr]e|(?:el)?i|of??)f|(?:h?a|(?:cl|p)as|i)s|(?:(?:[dp]r|lo)o|ski|tem)p|(?:(?:[cm]a|swi)tc|wit)h|(?:brea|chec|sin)k|(?:enu|fro|real)m|(?:exe|fun|pro)c|(?:(?:sh|thr)o|ne)w|debug|schema)\\b)((?>`(?>``|[^`])+`|\\b[\\p{L}\\p{Nl}\\p{Pc}]\\w*\\b))",
+              "captures": {"1": {"name": "entity.name.pragma.ruko"}}
+            },
+            {"include": "$self"}
+          ]
+        },
+        {
+          "applyEndPatternLast": true,
+          "begin": "^\\s*(%)(region|endregion|once)\\b",
           "end": "$",
           "name": "meta.directive.ruko",
           "captures": {
@@ -121,7 +155,7 @@
         },
         {
           "applyEndPatternLast": true,
-          "begin": "^\\s*(%)(error|warning)\\b",
+          "begin": "^\\s*(%)(info|error|warn|trace|debug|fatal)\\b",
           "end": "$",
           "name": "meta.directive.ruko",
           "captures": {
