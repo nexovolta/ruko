@@ -57,6 +57,10 @@ X<(|x| func<X>)> identity = |x: x|: X = x;
 for int i = 0, i < 10, i++:
   print("Hello, Ruko World! Iteration: " + i);
 let int x = 0x31091 + 0b101010 + 0o755 + 0z2309 + 123_456_789;
+// generics but I ruined it
+let x<x<x>, x<x>> x = 1
+let x<x<x<x>, x<x>>> x = 1
+let X<x <x<x>, x<x>>><x<x :> str, x<x:>int>> x = 1
 
 // style DSL example
 style `style` {
@@ -397,18 +401,20 @@ scope `for` for let `in` in [`mut` alloc: init: release:]:
 // JSX with inline styles and dynamic class names
 <div>
   for item in items:
-    <`span` .item-[item.id]=item.id> item.name </`span`>;
+    <span .item-[item.id]=item.id> item.name </>;
 </div>;
 
 // JSX control structures
 <for let=i in=(0 ... 10)>
   <if (x % 2 == 0)>
-    <span>#"Even: #i"</span>
-  <elif (x % 3 == 0)/>
-    <span>#"Divisible by 3: #i"</span>
-  <else/>
-    <span>#"Other: #i"</span>
-  </if>
+    <span>#"Even: #i"</>
+  </>
+  <elif (x % 3 == 0)>
+    <span>#"Divisible by 3: #i"</>
+  </>
+  <else>
+    <span>#"Other: #i"</>
+  </>
 </for>;
 
 // component example with props and conditional rendering
@@ -426,7 +432,7 @@ module CounterMessage(use React) {
       |: "Anonymous";
     }
 
-    return <div>#"Hello #name, you clicked me #times"</div>;
+    return <div>#"Hello #name, you clicked me #times"</>;
   }
 }
 
@@ -450,12 +456,12 @@ module App(use React, CounterMessage) {
       />;
       <button onClick=(|evt|setCount(|prev|prev + 1))>
         "Click me";
-      </button>;
+      </>;
       <button onClick=(|evt|setCount(|_|0))>
         "Reset";
-      </button>;
+      </>;
       <CounterMessage count username/>;
-    </div>;
+    </>;
   }
 }
 

@@ -124,7 +124,7 @@ let ñoño        = 7
 let `set`   = {1, 2, 3}
 let `const` = 42
 let `let` mut `mut`: `in` i32 = 10
-let `user name` = "Alice"      // spaces allowed inside backticks
+let `user name` = "Alice"     // spaces allowed inside backticks
 let `+` = |a, b| a + b        // operators as identifiers
 let `hello world` = "hi"
 
@@ -165,7 +165,7 @@ unsafe func void poke(*mut u8 p, u8 v) { *p = v }
 
 // ----- Type modifiers -----
 abstract class Shape { }
-final class Circle : Shape { }
+`final` class Circle : Shape { }
 sealed class Result<T> { }
 
 // ----- Prefix type annotations (C-style) -----
@@ -434,7 +434,7 @@ let nothing: str?   = null    // null — absence of value
 let bad: f64        = nan     // not-a-number
 let nowhere: *int   = null    // null pointer
 let empty: []int    = []      // empty array (not null, but zero-length)
-let und              = undef  // undefined (uninitialized region)
+let und             = undef   // undefined (uninitialized region)
 let inf: f64        = infty   // positive infinity
 let negInf: f64     = -infty  // negative infinity
 
@@ -642,7 +642,7 @@ style card {
   flex direction: :column
   align items: :center
   justify content: :space-between
-  box sizing: :border box
+  box sizing: :border:box
   visibility: :visible
   pointer events: :none
 }
@@ -1079,9 +1079,9 @@ let password  = (/[A-Za-z0-9!@#]{12}/).random Date.now()
    ============================================================ *\
 
 // ----- Basic HTML tags -----
-let el1 = <div>Hello</div>
-let el2 = <p>Paragraph</p>
-let el3 = <span>Inline</span>
+let el1 = <div>Hello</>
+let el2 = <p>Paragraph</>
+let el3 = <span>Inline</>
 let el4 = <input/>
 let el5 = <br/>
 let el6 = <img src="photo.jpg" alt="A photo"/>
@@ -1092,14 +1092,14 @@ let sc2 = <link rel="stylesheet" href="style.css"/>
 let sc3 = <meta charset="UTF-8"/>
 
 // ----- Component tags (PascalCase) -----
-let c1 = <Button>"Click me"</Button>
-let c2 = <Modal title="Alert"> <p>"Body"</p> </Modal>
+let c1 = <Button>"Click me"</>
+let c2 = <Modal title="Alert"> <p>"Body"</> </>
 let c3 = <DataTable rows=data columns=cols/>
 
 // ----- Fragment -----
 let frag = <>
-  <h1>"Title"</h1>
-  <p>"Body"</p>
+  <h1>"Title"</>
+  <p>"Body"</>
 </>
 
 // ----- Expression tags -----
@@ -1122,14 +1122,14 @@ let e3 = <{getTag()}> "b" </> // curly bracket: function call
 
 // ----- Attribute sigils -----
 // :event  — event listener
-<button :click=(|e| handleClick(e))>Click</button>
+<button :click=(|e| handleClick(e))> 'Click' </>
 <input :change=(|e| setValue(e.target.value))/>
 <form :submit=(|e| { e.preventDefault(); doSubmit() })/>
 <div :mouseover=(|e| onHover(e)) :mouseout=(|e| onLeave(e))/>
 
 // .class  — conditional class binding
 <div .active=isActive .error=hasError .hidden=!visible/>
-<p .highlight .bold> "Styled" </p> // bare .class = always applied
+<p .highlight .bold> "Styled" </> // bare .class = always applied
 
 // #id     — dynamic id binding
 <div #mainContainer/>
@@ -1159,7 +1159,7 @@ let props = {class: "foo", id: "bar"}
 <div %data=internalState/>
 
 // ~key    — reconciliation key
-<li ~key=item.id> 'item.name' </li>
+<li ~key=item.id> item.name </>
 
 // ^ prefix attr — parent/ancestor reference in selectors
 <div ^hover=onParentHover/>
@@ -1178,72 +1178,76 @@ let props = {class: "foo", id: "bar"}
   *extraProps
 >
   "Submit"
-</Button>
+</>
 
 // ----- Nested JSX / children -----
 <ul>
   <for let=item in=items>
-    <li ~key=item.id> item.name </li>
-  </for>
-  <if cond>
-    <li> "Conditional item" </li>
-  <elif anotherCond/>
-    <li> "Another" </li>
-  <else/>
-    <li> "Default" </li>
-  </if>
-</ul>
+    <li ~key=item.id> item.name </>
+  </>
+  <if (cond)>
+    <li>"Conditional item"</>
+  </>
+  <elif (anotherCond)>
+    <li>"Another"</>
+  </>
+  <else>
+    <li>"Default"</>
+  </>
+</>
 
 // ----- JSX control tags -----
 <for let=i in=(0 ..< 10)>
-  <span> i </span>
+  <span> i </>
 </for>
 
-<while(count < 5)>
-  <div> "Loop body" </div>
-</while>
+<while (count < 5)>
+  <div> "Loop body" </>
+</>
 
 <if (user != null)>
-  <Profile user=user/>
-<elif guest/>
+  <Profile user=user//>
+</>
+<elif (guest)>
   <GuestView/>
-<else/>
+</>
+<else>
   <LoginPrompt/>
-</if>
+</>
 
 <switch (status)>
-  <case "loading">
+  <case ("loading")>
     <Spinner/>
-  </case>
-  <case "error">
+  </>
+  <case ("error")>
     <ErrorMessage/>
-  </case>
+  </>
   <def>
     <Content/>
-  </def>
+  </>
 </>
 
 // ----- XML entities -----
 let amp  = \* &amp; *\    // &
 let lt   = \* &lt; *\     // <
 let gt   = \* &gt; *\     // >
-let quot = \* &quot; *\    // "
-let apos = \* &apos; *\    // '
-let nbsp = \* &nbsp; *\    // non-breaking space
+let quot = \* &quot; *\   // "
+let apos = \* &apos; *\   // '
+let nbsp = \* &nbsp; *\   // non-breaking space
 let num  = \* &#65; *\    // decimal entity → A
 let hex2 = \* &#x41; *\   // hex entity → A
 
 // ----- Inline style on tag -----
-<div style={background: :blue; color: :white; padding: "1rem"}/>
+<div style={background: :blue; color: :white; padding: 1rem}/>
 
 // ----- JSX expression children -----
 <div>
-  items.map(|item| <span> item </span>)
+  items.map(|item| <span> item </>)
    |> filter(|el| el.props.active)
-   |> map(|el| <strong> el </strong>)
+   |> map(|el| <strong> el </>)
   if willShow: <Modal/>
-  count > 0 ? <Badge n=count/> : <> </>
-</div>
+  count > 0 ? <Badge n=count/> : <></>
+</>
 
 \* ============================================================
    13 — RUKO MARKDOWN LITERALS
@@ -2226,7 +2230,7 @@ func refExamples() {}
  * @param {function(string, number): boolean} predicate - function type
  * @param {{x: number, y: number}} point - inline object type
  */
-func complex(str | int id, []str tags, bool? flag, bool required, fn predicate, point: {x: int, y: int}) {}
+func complex(str | int id, []str tags, bool? flag, bool required, fn predicate, {x: int, y: int} point) {}
 
 \* ============================================================
    18 — FUNCTION CALLS
@@ -2259,6 +2263,8 @@ let r11 = identity<int>(42)
 let r12 = parse<Config>(jsonStr)
 let r13 = Vec.new<str>()
 let r14 = zip<int, str>(numbers, names)
+
+V<x>(x)
 
 // ----- Method chain call -----
 let r15 = [1, 2, 3]
