@@ -8713,10 +8713,10 @@ repository:
       - comment: Catalog Unicode property aliases and canonical names
         match: |-
           (?xi)\b(
-                age                      | Age
-              | blk                      | Block
-              | sc                       | Script
-              | scx                      | Script_Extensions # note: not in UAX #44
+                age                    | Age
+              | blk                    | Block
+              | sc                     | Script
+              | scx                    | Script_Extensions # note: not in UAX #44
           )\b
         name: support.type.property-name.unicode.catalog.ruko
       - comment: Enumerated Unicode property aliases and canonical names

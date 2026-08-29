@@ -239,30 +239,27 @@ print (/(&) // HTML entity start
 
 // Footgun "Hello, World!" example using Ruko as a base
 public static threadSafe comptime heapAllocated stackFrameSize256 executionDeterministic sideEffectFree memorySafe boundsChecked exceptionSafe overflowChecked divisionSafe concurrentSafe func Main(
-  Footgun::StandardLibrary::Collections::Generic::ImmutableList<Footgun::StandardLibrary::Text::Unicode::UTF8::String> @InputArguments
-): Footgun::StandardLibrary::Primitives::Void::Unit where
-  requires InputArguments is not Footgun::StandardLibrary::Null::NullType::NullValue
-  requires InputArguments.length <= 1024
-  ensures Footgun::StandardLibrary::MemorySafety::MemorySafeExecution
-  ensures Footgun::StandardLibrary::ExecutionDeterminism::DeterministicExecution
-  ensures Footgun::StandardLibrary::ExceptionSafety::ExceptionSafeExecution
-  ensures Footgun::StandardLibrary::OverflowSafety::OverflowSafeExecution
-  ensures Footgun::StandardLibrary::DivisionSafety::DivisionSafeExecution
-  ensures Footgun::StandardLibrary::ConcurrencySafety::ConcurrentSafeExecution
-  ensures Footgun::StandardLibrary::SideEffectSafety::SideEffectFreeExecution
-  ensures Footgun::StandardLibrary::BoundsSafety::BoundsCheckedExecution
-  ensures Footgun::StandardLibrary::HeapAllocation::HeapAllocatedExecution
+  StandardLibrary::Collections::Generic::ImmutableList<StandardLibrary::Text::Unicode::UTF8::String> @InputArguments
+): StandardLibrary::Primitives::Void::Unit where
+  requires InputArguments is not StandardLibrary::Null::NullType::NullValue
+  requires InputArguments.length <= StandardLibrary::Primitives::Int32::Value(1024)
+  ensures StandardLibrary::MemorySafety::MemorySafeExecution
+  ensures StandardLibrary::ExecutionDeterminism::DeterministicExecution
+  ensures StandardLibrary::ExceptionSafety::ExceptionSafeExecution
+  ensures StandardLibrary::OverflowSafety::OverflowSafeExecution
+  ensures StandardLibrary::DivisionSafety::DivisionSafeExecution
+  ensures StandardLibrary::ConcurrencySafety::ConcurrentSafeExecution
+  ensures StandardLibrary::SideEffectSafety::SideEffectFreeExecution
+  ensures StandardLibrary::BoundsSafety::BoundsCheckedExecution
+  ensures StandardLibrary::HeapAllocation::HeapAllocatedExecution
 {
-  immutable stackAllocated let Footgun::StandardLibrary::Text::UTF8String *WelcomeMessage = "Hello, Footgun World!";
-  [Footgun::StandardLibrary::Console
-    WriteToStdout: Footgun::StandardLibrary::Text::UTF8StringEncodingOptions{
-      StringToWrite: WelcomeMessage,
-      EncodingOptions: Footgun::StandardLibrary::Text::UTF8::TextEncodingOptions::UTF8WithBOM,
-    }
-    UsingFlushPolicy: Footgun::StandardLibrary::ConsoleFlushPolicy::Immediate
-    WithThreadSafety: Footgun::StandardLibrary::ConsoleThreadSafetyPolicy::ThreadSafe
-    WithColorPolicy: Footgun::StandardLibrary::ConsoleColorPolicy::Default
-    WithOutputDestination: Footgun::StandardLibrary::ConsoleOutputDestination::StandardOutput
+  immutable stackAllocated let StandardLibrary::Text::UTF8String *WelcomeMessage = [[StandardLibrary::Text::UTF8String("Hello, Footgun World!") alloc:] init:];
+  [StandardLibrary::Console
+    WriteToStdout: StandardLibrary::Text::UTF8StringEncodingOptions{StringToWrite: WelcomeMessage, EncodingOptions: StandardLibrary::Text::UTF8::TextEncodingOptions::UTF8WithBOM}
+    UsingFlushPolicy: StandardLibrary::ConsoleFlushPolicy::Immediate
+    WithThreadSafety: StandardLibrary::ConsoleThreadSafetyPolicy::ThreadSafe
+    WithColorPolicy: StandardLibrary::ConsoleColorPolicy::Default
+    WithOutputDestination: StandardLibrary::ConsoleOutputDestination::StandardOutput
   ];
-  return Footgun::StandardLibrary::Primitives::Void::Unit::DefaultValue;
+  return StandardLibrary::Primitives::Void::Unit::DefaultValue;
 };

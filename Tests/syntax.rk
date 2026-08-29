@@ -659,8 +659,8 @@ let sym2 = :'any chars!'     // single-quoted symbol
 
 // ----- Symbols in pattern matching -----
 match result {
-  | is :ok: print("success")
-  | is :error: print("failure")
+  case is :ok: print("success")
+  case is :error: print("failure")
 }
 
 // ----- Symbol type -----
@@ -3468,42 +3468,42 @@ loop {
 
 // match
 match value {
-  | 0: print("zero")
-  | 1: print("one")
-  | n if n < 0: print("negative")
-  | n: print(#"other: #n")
-  | else print("unreachable")
+  case 0: print("zero")
+  case 1: print("one")
+  case n if n < 0: print("negative")
+  case n: print(#"other: #n")
+  else print("unreachable")
 }
 
 // match with type guards
-match val {
-  | is int: print("integer")
-  | is str: print("string")
-  | has .name: print("has name field")
-  | can .serialize: print("serializable")
-  | else print("unknown")
+match value {
+  case is int: print("integer")
+  case is str: print("string")
+  case has .name: print("has name field")
+  case can .serialize: print("serializable")
+  else print("unknown")
 }
 
 // match with destructuring
 match pair {
-  | (0, 0): print("origin")
-  | (x, 0): print(#"on x-axis at #x")
-  | (0, y): print(#"on y-axis at #y")
-  | (x, y): print(#"(#x, #y)")
+  case (0, 0): print("origin")
+  case (x, 0): print(#"on x-axis at #x")
+  case (0, y): print(#"on y-axis at #y")
+  case (x, y): print(#"(#x, #y)")
 }
 
 // match with as alias
 match result {
-  | Okay(v) as ok: print(#"success: #v")
-  | Error(e) as err: print(#"failure: #e")
+  case Okay(v) as ok: print(#"success: #v")
+  case Error(e) as err: print(#"failure: #e")
 }
 
 // switch (similar to match, more C-like feel)
 switch statusCode {
-  | 200: "OK"
-  | 404: "Not Found"
-  | 500: "Server Error"
-  | else "Unknown"
+  case 200: "OK"
+  case 404: "Not Found"
+  case 500: "Server Error"
+  else "Unknown"
 }
 
 // ============================================================
@@ -3511,15 +3511,16 @@ switch statusCode {
 // ============================================================
 
 // try block
-try {
-  let data = parse(input)
-  process(data)
-} catch {
-  | is ParseError as e: print(#"Parse error: #e.msg")
-  | is NetworkError: retry()
-  | e: print(#"Unknown: #e")
-} final {
-  cleanup()
+{
+  x: try {
+    let data = parse(input)
+    process(data)
+  } catch {
+    case is ParseError as e: print(#"Parse error: #e.msg")
+    case is NetworkError: retry
+    case e: print(#"Unknown: #e")
+  } final
+    cleanup()
 }
 
 // try expression (returns a Result)
@@ -3530,7 +3531,7 @@ throw RuntimeError("unexpected null")
 raise ValueError("out of range")
 
 // try with in/of/as
-try connection as c {
+try let connection as c {
   c.query("SELECT 1")
 }
 
@@ -3541,13 +3542,9 @@ let safe_val = doThing() error |e| defaultValue
 // WHEN / GUARD (signal & reactive conditions)
 // ============================================================
 
-when signal {
-  print("signal fired")
-}
+when signal { print("signal fired") }
 
-when not busy {
-  processQueue()
-}
+when not busy { processQueue() }
 
 // guard (Ruko's version of Swift guard)
 guard user != null else return
@@ -3558,7 +3555,7 @@ guard let Ok(cfg) = Config.load() else |e| { log(e); return }
 // WITH / DO (resource scoping)
 // ============================================================
 
-with open("file.txt") as f {
+with open("file.txt") as let f {
   let content = f.readAll()
   process(content)
 }
@@ -3566,26 +3563,26 @@ with open("file.txt") as f {
 with {
   let db   = Database.connect(url)
   let lock = Mutex.lock()
-} {
+} do {
   db.query("INSERT ...")
 }
 
-do {
+use System do {
   let tmp = heavyComputation()
-  use(tmp)
+  System.use(tmp)
 }
 
 // ============================================================
 // RETURN / YIELD / AWAIT
 // ============================================================
 
-func getEven([]int xs): []int {
+func []int getEven([]int xs) {
   return xs.filter(|x| x % 2 == 0)
 }
 
 func add5(int n): int = n + 5   // expression body, implicit return
 
-iter count_up(int start): iter<int> {
+iter<int> count_up(int start) {
   mut i = start
   loop {
     yield i
@@ -3593,13 +3590,13 @@ iter count_up(int start): iter<int> {
   }
 }
 
-async func loadUser(int id): Promise<User> {
+async func Promise<User> loadUser(int id) {
   let resp = await http.get(#"/users/#id")
   await resp.json()
 }
 
 // yield* (delegate to sub-iterator)
-iter all_items(): iter<int> {
+iter<int> all_items()  {
   yield* firstBatch()
   yield* secondBatch()
 }
@@ -3618,11 +3615,10 @@ for i in 0 ..< 100 {
 // goto (structured — only within a scope)
 goto cleanup
 // ...
-cleanup: releaseResources()
+scope cleanup releaseResources()
 
 // retry (re-enters a labelled block or loop)
-fetch_data:
-try {
+scope fetch_data try {
   let data = fetch(url)
   use(data)
 } catch is NetworkError {
@@ -3714,9 +3710,9 @@ for let {name, age} of users { print(#"#name (#age)") }
 
 // In case arm
 match event {
-  | {`type`: :click, target: el}: handler(el)
-  | {`type`: :keydown, key: k}: keyHandler(k)
-  |: ignore()
+  case {`type`: :click, target: el}: handler(el)
+  case {`type`: :keydown, key: k}: keyHandler(k)
+  else ignore()
 }
 
 // ============================================================
@@ -3747,8 +3743,8 @@ for let (k, v) of pairs { print(#"#k => #v") }
 
 // In case arm
 match result {
-  | (:ok, val): process(val)
-  | (:err, msg): logError(msg)
+  case (:ok, val): process(val)
+  case (:err, msg): logError(msg)
 }
 
 // ============================================================
@@ -3789,10 +3785,10 @@ for [a4, b4, c4] in matrix3x { print(#"#a4 #b4 #c4") }
 
 // In case arm
 match list {
-  | []: print("empty")
-  | [x]: print(#"singleton: #x")
-  | [x, y]: print(#"pair: #x, #y")
-  | [h, ..t]: print(#"head=#h tail=#t")
+  case []: print("empty")
+  case [x]: print(#"singleton: #x")
+  case [x, y]: print(#"pair: #x, #y")
+  case [h, ..t]: print(#"head=#h tail=#t")
 }
 
 // ============================================================
@@ -3816,15 +3812,15 @@ let {meta: {tags: [primaryTag, ..otherTags]}, content} = post
 // ============================================================
 
 match val {
-  | is int as n: print(#"int: #n")
-  | is str as s: print(#"str: #s")
-  | has .name as obj: print(obj.name)
-  | can .serialize as obj: obj.serialize()
+  case is int as n: print(#"int: #n")
+  case is str as s: print(#"str: #s")
+  case has .name as obj: print(obj.name)
+  case can .serialize as obj: obj.serialize()
 }
 
 match shape {
-  | is Circle has .radius as c: c.area()
-  | is Rect   has .width as r: r.area()
+  case is Circle has .radius as c: c.area()
+  case is Rect   has .width as r: r.area()
 }
 
 // ============================================================
@@ -3832,15 +3828,15 @@ match shape {
 // ============================================================
 
 match x {
-  | n if n < 0: print("negative")
-  | n if n == 0: print("zero")
-  | n if n > 0: print("positive")
+  case n if n < 0: print("negative")
+  case n if n == 0: print("zero")
+  case n if n > 0: print("positive")
 }
 
 match pair {
-  | (a, b) if a == b: print("equal")
-  | (a, b) if a > b: print("a greater")
-  | (a, b): print("b greater")
+  case (a, b) if a == b: print("equal")
+  case (a, b) if a > b: print("a greater")
+  case (a, b): print("b greater")
 }
 
 // ============================================================
@@ -3848,8 +3844,8 @@ match pair {
 // ============================================================
 
 match node {
-  | Branch(left, right) as tree: renderBranch(left, right, tree)
-  | Leaf(val) as leaf: renderLeaf(val, leaf)
+  case Branch(left, right) as tree: renderBranch(left, right, tree)
+  case Leaf(val) as leaf: renderLeaf(val, leaf)
 }
 
 let xs as original = transform(input)
@@ -4044,8 +4040,8 @@ let xs as orig = transform(input)      // xs, also accessible as orig
 
 // `as` in pattern arms
 match node {
-  | Branch(left, right) as tree: process(tree, left, right)
-  | Leaf(val) as leaf: process(leaf, val)
+  case Branch(left, right) as tree: process(tree, left, right)
+  case Leaf(val) as leaf: process(leaf, val)
 }
 
 // `as` in for loop
@@ -4057,8 +4053,8 @@ for event as prev_event in event_log {
 try {
   dangerousOp()
 } catch {
-  | RuntimeError as e: print(e.message)
-  | else as e: print(e)
+  case RuntimeError as e: print(e.message)
+  else as e: print(e)
 }
 
 // `as` in import
@@ -4105,9 +4101,9 @@ func printUser({name, age, title = "Mx."}: User): void {
 
 // Object pattern in case arm
 match event {
-  | is {type: :click, x, y}: handleClick(x, y)
-  | is {type: :keydown, key: k, shift}: handleKey(k, shift)
-  | is {type: :resize, width: w, height: h}: resize(w, h)
+  case is {type: :click, x, y}: handleClick(x, y)
+  case is {type: :keydown, key: k, shift}: handleKey(k, shift)
+  case is {type: :resize, width: w, height: h}: resize(w, h)
 }
 
 // ============================================================
@@ -4137,9 +4133,9 @@ func swapFn((int x, int y)): (int, int) { (y, x) }
 
 // Tuple pattern in case arm
 match result {
-  | is (:ok, |val|): use(val)
-  | is (:err, |msg|): logError(msg)
-  | is (:pending, |pct|): showProgress(pct)
+  case is (:ok, |val|): use(val)
+  case is (:err, |msg|): logError(msg)
+  case is (:pending, |pct|): showProgress(pct)
 }
 
 // Tuple pattern in for loop
@@ -4182,11 +4178,11 @@ func firstTwo([a, b, .._]): (auto, auto) { (a, b) }
 
 // Array pattern in case arm
 match list {
-  | []: "empty"
-  | [x]: #"singleton: #x"
-  | [x, y]: #"pair: #x, #y"
-  | [x, y, z]: #"triple: #x #y #z"
-  | [h, ..t]: #"head=#h, rest len=#(t.len())"
+  case []: "empty"
+  case [x]: #"singleton: #x"
+  case [x, y]: #"pair: #x, #y"
+  case [x, y, z]: #"triple: #x #y #z"
+  case [h, ..t]: #"head=#h, rest len=#(t.len())"
 }
 
 // ============================================================
@@ -4421,9 +4417,9 @@ let rec = {name: "Alice", age: 30}
 
 // Match / switch body
 match n {
-  | 0: "zero"
-  | 1: "one"
-  | else "many"
+  case 0: "zero"
+  case 1: "one"
+  else "many"
 }
 
 // Binding pattern
@@ -4438,7 +4434,7 @@ let merged = #{*base, z: 3}
 
 // Style block
 style Card {
-  background-color: :white;
+  background color: :white;
   border radius: 8px;
 }
 
@@ -4494,8 +4490,8 @@ let fixed: [5]int = [1, 2, 3, 4, 5]
 
 // Subscript / index access
 let first3 = arr3[0]
-let last2   = arr3[arr3.len() - 1]
-let ch      = str2[3]
+let last2  = arr3[-1]
+let ch     = str2[3]
 
 // Slice
 let sl = arr3[1:3]
@@ -4507,8 +4503,8 @@ let [h, ..t] = arr3
 let val3 = obj[dynamicKey]
 
 // CSS selector list (in style-list context)
-style FocusStyle [input, textarea, button] {
-  outline: 2px solid blue;
+style FocusStyle[input, textarea, button] {
+  outline: 2px:solid:blue;
 }
 
 // Splice form #[...]
