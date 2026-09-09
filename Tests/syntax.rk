@@ -3698,7 +3698,7 @@ let {name: n3, email?} = user     // email may not exist
 
 // Type-annotated
 let {x: int, y: int} = pixel
-let {name: str, score: f64} = record
+let {name: str, score: f64} = rec
 
 // In a function signature
 func printPoint({x, y}: Point): void { print(#"(#x, #y)") }

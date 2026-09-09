@@ -183,8 +183,7 @@ let chords = [chord '<Bbm9 Fm9>/4' dict: 'ireal'];
     lpq: 5 rarely: ply '2' chunk: 4 fast: 2 gain: [perlin.range 0.6 0.9]
     mask: '<0 1 1 0>/16'
   ]),
-  late: '[0 0.01]*4' late: '[0 0.01]*2' size: 4 delay: 0.125 size: 2 mix: 0.3
-  run: 64
+  late: '[0 0.01]*4' late: '[0 0.01]*2' size: 4 delay: 0.125 size: 2 mix: 0.3 run: 64
 ];
 
 samples('github:eddyflux/crate');
@@ -207,11 +206,10 @@ stack(
     .fm(sine.range(3, 8).slow(8)).lpf(sine.range(500, 1000).slow(8)).lpq(5)
     .rarely().ply('2').chunk(4).fast(2).gain(perlin.range(0.6, 0.9))
     .mask('<0 1 1 0>/16')
-).late('[0 0.01]*4').late('[0 0.01]*2').size(4).delay(0.125).size(2).mix(0.3)
-  .run(64);
+).late('[0 0.01]*4').late('[0 0.01]*2').size(4).delay(0.125).size(2).mix(0.3).run(64);
 
 // regex with inline comments and whitespace
-print (/(&) // HTML entity start
+print /(&) // HTML entity start
     (?:
       (\# 0*(?:\d|[1-9]\d{1,5}|10\d{5}|110\d{4}|111[0-3]\d{3}|11140\d{2}|111410\d|111411[01])) // decimal
     | (\#b0*(?:[01]|1[01]{1,19}|10000[01]{16})) // binary
@@ -234,8 +232,7 @@ print (/(&) // HTML entity start
   &#o1405000;
   &#z468a0;
   &#x1F600;
-  &#invalid;')
-);
+  &#invalid;');
 
 // Footgun "Hello, World!" example using Ruko as a base
 public static threadSafe comptime heapAllocated stackFrameSize256 executionDeterministic sideEffectFree memorySafe boundsChecked exceptionSafe overflowChecked divisionSafe concurrentSafe func Main(
@@ -262,4 +259,4 @@ public static threadSafe comptime heapAllocated stackFrameSize256 executionDeter
     WithOutputDestination: StandardLibrary::ConsoleOutputDestination::StandardOutput
   ];
   return StandardLibrary::Primitives::Void::Unit::DefaultValue;
-};
+}

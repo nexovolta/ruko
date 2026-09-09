@@ -29,18 +29,20 @@ show class MTRand : Io.Serializer {
 
     // constructor overloads
     // # = "self"
-    proc MTRand(u32 one_seed) = #seed(one_seed);
-    proc MTRand(&u32 big_seed, u32 seed_length = N) =
+    proc void MTRand(u32 one_seed) { #seed(one_seed); }
+    proc void MTRand(&u32 big_seed, u32 seed_length = N) {
       #seed(big_seed, seed_length);
-    proc MTRand() = #seed();
-    proc MTRand(&MTRand o) {
+    }
+
+    proc void MTRand() = #seed();
+    proc void MTRand(&MTRand o) {
       for let i32 i in 0 ..< N:
         #state->[i] := o->state->[i];
       #left := o->left;
       #p_next := if #left == 0: &#state->0 else &#state->[N - #left];
     }
 
-    proc ~MTRand(); // no dynamic memory to free
+    proc void ~MTRand(); // no dynamic memory to free
 
     // generate N words at one time
     proc u32 rand_int() {
@@ -70,13 +72,13 @@ show class MTRand : Io.Serializer {
     }
 
     // seed overloads
-    proc seed(u32 one_seed) {
+    proc void seed(u32 one_seed) {
       #initialize(one_seed);
       #reload();
     }
 
     // seed with an array
-    proc seed(&u32 big_seed, u32 seed_length = N) {
+    proc void seed(&u32 big_seed, u32 seed_length = N) {
       #initialize(19650218);
 
       mut i32 i = 1;
@@ -108,7 +110,7 @@ show class MTRand : Io.Serializer {
     }
 
     // seed with system entropy or time-based seed
-    proc seed() {
+    proc void seed() {
       let ur = Crypto::open_urandom();
 
       if ?ur {
@@ -129,7 +131,7 @@ show class MTRand : Io.Serializer {
       #seed(#hash(t, c));
     }
 
-    proc initialize(u32 one_seed) {
+    proc void initialize(u32 one_seed) {
       #state->0 := one_seed & 0xffffffff;
 
       for let i32 i in 1 ..< N {
@@ -138,7 +140,7 @@ show class MTRand : Io.Serializer {
       }
     }
 
-    proc reload() {
+    proc void reload() {
       mut p = &#state->0;
 
       for in 0 ..< (N - M) {
@@ -156,13 +158,13 @@ show class MTRand : Io.Serializer {
       #p_next := &#state->0;
     }
 
-    proc save(&u32 save_array) {
+    proc void save(&u32 save_array) {
       mut sa = save_array;
       for let i32 i in 0 ..< N: sa[i] := #state->[i];
       sa[N] := #left;
     }
 
-    proc load(&u32 load_array) {
+    proc void load(&u32 load_array) {
       mut la = load_array;
       for let i32 i in 0 ..< N: #state->[i] := la[i];
       #left := la[N];
@@ -245,7 +247,7 @@ show class MTRand : Io.Serializer {
       return s;
     }
 
-    override static proc deserialize(str s) {
+    override static proc void deserialize(str s) {
       let []str parts = s / '\t'; // split by tab
       for let i32 i in 0 ..< N: #state->[i] := (u32) parts[i];
       #left := (i32) parts[N];

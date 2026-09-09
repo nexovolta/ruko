@@ -1,0 +1,22 @@
++(x) -x- b- -c -d
+x a- -x- c
+x \//\ y a b c
+
+x \x\ a
+0`px`
+print(#"x = 1\ux10ffff")
+
+C<T: Ord & Copy> = T: Ord & Copy
+func<T: x <: Ord & Copy> T clamp2(T v, T lo, T hi) {
+  if v < lo: lo
+  elif v > hi: hi
+  else v
+}
+
+func<(
+  T: x <: Ord & Copy
+)> T clamp2(T v, T lo, T hi) {
+  if v < lo: lo
+  elif v > hi: hi
+  else v
+}
