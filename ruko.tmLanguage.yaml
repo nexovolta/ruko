@@ -415,24 +415,24 @@ repository:
             | ( \?[.:>] ) # optional
             | ( ![.:>] ) # mandatory
             | ( (?:\.|::|->) ) # accessors
-            | ( &&|\|\||\^\^|Â§Â§|Â¦Â¦|Â¤Â¤|Â«Â«|Â»Â»|â€¹â€¹|â€ºâ€º|~~|Â¬Â¬|â€ â€ |â€¡â€¡|Â°Â° ) # logical
-            | ( [&|^Â§Â¦Â¤Â«Â»â€¹â€º~Â¬â€ â€¡Â°] ) # bitwise
+            | ( &&|\|\||\^\^|§§|¦¦|¤¤|««|»»|‹‹|››|~~|¬¬|††|‡‡|°° ) # logical
+            | ( [&|^§¦¤«»‹›~¬†‡°] ) # bitwise
             | ( <<[<>]?|[<>]?>> ) # bitwise shift
-            | ( \+\+|--|Ã—Ã—|Ã·Ã·|Â±Â±|%% ) # string
-            | ( [+\-Ã—Ã·Â±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
+            | ( \+\+|--|××|÷÷|±±|%% ) # string
+            | ( [+\-×÷±][%|]?|\*\*?[%|]?|~?/|%%? ) # arithmetic
             | ( [|+*$]>|<[|+*$] ) # pipeline
             | ( <[|+*$]>|[$#] ) # application
-            | ( <\+|\+>|[.Â·] ) # composition
+            | ( <\+|\+>|[.·] ) # composition
             | ( [<>][:!]|[:!][<>] ) # class
             | ( [>.]\.[.<]|[=.]\.[.=]|\.\. ) # range
             | ( [<>]=?|<=?> ) # relational
-            | ( \.\.+|Â·Â·+ ) # dots
+            | ( \.\.+|··+ ) # dots
             | ( [!=]==? ) # comparison
             | ( ~[=!]|[=!]~ ) # similarity
-            | ( \?\?\??|Â¿Â¿Â¿? ) # null-coalescing
-            | ( !!!?|Â¡Â¡Â¡? ) # coalescing
-            | ( [?Â¿]:? ) # conditional
-            | ( [!Â¡]:? ) # ternary
+            | ( \?\?\??|¿¿¿? ) # null-coalescing
+            | ( !!!?|¡¡¡? ) # coalescing
+            | ( [?¿]:? ) # conditional
+            | ( [!¡]:? ) # ternary
             | ( \$|:?:?: ) # macro
             | ( [?:]?= ) # assignment
             | ( ==?>|<== ) # fat arrow
@@ -441,9 +441,9 @@ repository:
             | ( \p{Sm}+ ) # math symbols
             | ( \p{Sc}+ ) # currency symbols
             | ( [\p{In_Arrows}\p{In_Supplemental_Arrows_A}\p{In_Supplemental_Arrows_B}\p{In_Supplemental_Arrows_C}\p{In_Miscellaneous_Symbols_and_Arrows}]+ ) # arrow-like
-            | ( [!-Ã¿&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
-                (?:[!-Ã¿&&[\p{S}\p{P}]]*
-                  [!-Ã¿&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
+            | ( [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+ # ascii operators
+                (?:[!-ÿ&&[\p{S}\p{P}]]*
+                  [!-ÿ&&[\p{S}\p{P}&&[^.,:;'"`|<>/\\()\[\]{}\p{Pc}]]]+
                 )?
               )
             | ( [\p{P}\p{S}&&[^,;'"`\\()\[\]{}\p{Pc}]]+ # infix operators
@@ -5154,8 +5154,8 @@ repository:
           )
 
           (?=
-              \s+ (?:<[|+*$]>?|[.Â·$]) (\s+|$) # infix operator
-            | (?:<[|+*$]>?|[Â·Â°]) # interfix operator
+              \s+ (?:<[|+*$]>?|[.·$]) (\s+|$) # infix operator
+            | (?:<[|+*$]>?|[·°]) # interfix operator
           )
         captures:
           1:
@@ -5166,8 +5166,8 @@ repository:
         match: |-
           (?x)
           (?<=
-              (?:^|\s+) (?:<?[|+*$]>|[.Â·#]) \s+ # infix operator
-            | (?:<?[|+*$]>|[Â·Â°]) # interfix operator
+              (?:^|\s+) (?:<?[|+*$]>|[.·#]) \s+ # infix operator
+            | (?:<?[|+*$]>|[·°]) # interfix operator
           )
           \b
           (
@@ -9872,7 +9872,7 @@ repository:
           imag: imaginary number (bi)
           comp: complex number (a + bi)
           quat: quaternion (a + bi + cj + dk)
-          oct: octonion (a + bi + cj + dk + eâ„“ + fm + gn + ho)
+          oct: octonion (a + bi + cj + dk + eℓ + fm + gn + ho)
         match: |-
           (?x)\b(
             [nN]um|[nN]at|[uU]?[iI]nt|[rR]at|[fF]ract|[fF]loat|[rR]eal|[iI]mag|[cC]omp|[qQ]uat|[oO]ct
