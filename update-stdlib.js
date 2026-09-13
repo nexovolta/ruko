@@ -2,16 +2,23 @@ import regexGen from './regex-gen.js';
 import genex from 'genex';
 import platform from './src/platform.tmLanguage.json' with {type: 'json'};
 import prettier from 'prettier';
-import {readFileSync, writeFileSync} from 'fs';
-import {globSync} from 'glob';
+import {readFileSync, writeFileSync, existsSync} from 'fs';
+import {readFile, mkdir} from 'fs/promises';
+import {glob} from 'glob';
 import {unicodeName} from 'unicode-name';
+import {execFile} from 'child_process';
+import {promisify} from 'util';
+import {availableParallelism} from 'os';
+import {colornames} from 'color-name-list';
 
+let execFileAsync = promisify(execFile);
 let {isArray, from} = Array;
 let {fromCodePoint} = String;
 let {parse, stringify} = JSON;
 let {keys, values, fromEntries, entries} = Object;
 
 let start = performance.now();
+let concurrency = Math.max(4, availableParallelism());
 
 // Utility functions
 let pipe = (k, ...fns) => fns.reduce((v, fn) => fn(v), k);
@@ -34,6 +41,28 @@ let pluralize = word => {
     : newWord + 's'
   );
 };
+
+// Run async work over items with a fixed worker pool.
+let mapPool = async (items, limit, fn) => {
+  let results = new Array(items.length);
+  let next = 0;
+  let workers = from({length: Math.min(limit, items.length || 1)}, async () => {
+    while (true) {
+      let i = next++;
+      if (i >= items.length) break;
+      results[i] = await fn(items[i], i);
+    }
+  });
+  await Promise.all(workers);
+  return results;
+};
+
+let runGit = (args, opts = {}) =>
+  execFileAsync('git', args, {
+    windowsHide: true,
+    maxBuffer: 64 * 1024 * 1024,
+    ...opts,
+  });
 
 // Conventions are divided into validators and splitters.
 // Validators are functions that check if a symbol follows a certain convention,
@@ -82,7 +111,6 @@ let gdScriptClasses = parse(
     'C:/Users/Admin/Dropbox/Ruko Language/gdscript-classes.json',
     'utf8',
   ),
-  'utf8',
 );
 values(gdScriptClasses).forEach(
   symbols => (symbolSet.class = symbolSet.class.union(new Set(symbols))),
@@ -108,29 +136,65 @@ let traversePlatform = node => {
 };
 traversePlatform(platform);
 
-// === NODE.JS STANDARD LIBRARY ===
-let stdlibDir = 'C:/Users/Admin/Ruko/DefinitelyTyped-master/types/**/*.ts';
-let stdlibFiles = globSync(stdlibDir, {absolute: true})
-  .filter(path => !/\/node_modules\//.test(path))
-  .reverse();
+// === DEFINITELYTYPED ===
+let repoDir = 'C:/Users/Admin/Ruko/DefinitelyTyped-master';
+let repoUrl = 'https://github.com/DefinitelyTyped/DefinitelyTyped.git';
+let repoBranch = 'master';
 
-stdlibFiles.forEach(path => {
-  let content = readFileSync(path, 'utf8');
+let syncDefinitelyTyped = async () => {
+  await mkdir(repoDir, {recursive: true});
 
-  let patterns = {
-    class: /\bclass\b\s+\b([a-zA-Z_]\w*)\b/gm, // classes
-    interface: /\binterface\b\s+\b([a-zA-Z_]\w*)\b/gm, // interfaces
-    enum: /\benum\b\s+\b([a-zA-Z_]\w*)\b/gm, // enums
-    namespace: /\bnamespace\b\s+\b([a-zA-Z_]\w*)\b/gm, // namespaces
-    module: /\bmodule\b\s+\b([a-zA-Z_]\w*)\b/gm, // modules
-    function: /\s*\b([a-zA-Z_]\w*)\b\s*\(/gm, // functions and methods
-    type: /\btype\b\s+\b([a-zA-Z_]\w*)\b/gm, // type aliases
-    variable: /\b(?:var|let)\b\s+\b([a-zA-Z_]\w*)\b/gm, // variables with var or let
-    constant: /\bconst\b\s*\b([a-zA-Z_]\w*)\b/gm, // constants with const
-    property: /\b([a-zA-Z_]\w*)\b(?=\s*(\??[:=])\s*)/gm, // properties and variables with type annotations or initializers
+  // Force this work tree / git dir regardless of prior clone location.
+  let env = {
+    ...process.env,
+    GIT_DIR: `${repoDir}/.git`,
+    GIT_WORK_TREE: repoDir,
   };
 
-  patterns = fromEntries(
+  let hasGit = existsSync(`${repoDir}/.git`);
+  if (!hasGit) {
+    // Directory may already exist (empty or extracted without .git);
+    // init in place — git clone refuses non-empty destinations.
+    console.log(`Cloning DefinitelyTyped from ${repoUrl} into ${repoDir}...`);
+    await runGit(['init'], {cwd: repoDir, env});
+    await runGit(['remote', 'remove', 'origin'], {cwd: repoDir, env}).catch(
+      () => {},
+    );
+    await runGit(['remote', 'add', 'origin', repoUrl], {cwd: repoDir, env});
+  } else {
+    console.log(`Updating DefinitelyTyped in ${repoDir}...`);
+    await runGit(['remote', 'set-url', 'origin', repoUrl], {cwd: repoDir, env});
+  }
+
+  await runGit(['fetch', '--depth', '1', 'origin', repoBranch], {
+    cwd: repoDir,
+    env,
+  });
+  await runGit(['checkout', '-f', '-B', repoBranch, `origin/${repoBranch}`], {
+    cwd: repoDir,
+    env,
+  });
+  await runGit(['reset', '--hard', `origin/${repoBranch}`], {cwd: repoDir, env});
+  await runGit(['clean', '-fd'], {cwd: repoDir, env});
+};
+
+await syncDefinitelyTyped();
+
+let extractSymbols = content => {
+  let patterns = {
+    class: /\bclass\b\s+\b([a-zA-Z_]\w*)\b/gm,
+    interface: /\binterface\b\s+\b([a-zA-Z_]\w*)\b/gm,
+    enum: /\benum\b\s+\b([a-zA-Z_]\w*)\b/gm,
+    namespace: /\bnamespace\b\s+\b([a-zA-Z_]\w*)\b/gm,
+    module: /\bmodule\b\s+\b([a-zA-Z_]\w*)\b/gm,
+    function: /\s*\b([a-zA-Z_]\w*)\b\s*\(/gm,
+    type: /\btype\b\s+\b([a-zA-Z_]\w*)\b/gm,
+    variable: /\b(?:var|let)\b\s+\b([a-zA-Z_]\w*)\b/gm,
+    constant: /\bconst\b\s*\b([a-zA-Z_]\w*)\b/gm,
+    property: /\b([a-zA-Z_]\w*)\b(?=\s*(\??[:=])\s*)/gm,
+  };
+
+  return fromEntries(
     entries(patterns).map(([key, value]) => [
       key,
       [...new Set(content.matchAll(value))]
@@ -138,11 +202,25 @@ stdlibFiles.forEach(path => {
         .filter(Boolean),
     ]),
   );
+};
 
-  keys(patterns).forEach(key => {
-    symbolSet[key] = symbolSet[key].union(new Set(patterns[key]));
-  });
+let stdlibFiles = (
+  await glob(`${repoDir}/types/**/*.ts`, {absolute: true, nodir: true})
+).filter(path => !/[/\\]node_modules[/\\]/.test(path));
+
+console.log(
+  `Extracting symbols from ${stdlibFiles.length} DefinitelyTyped files (${concurrency} workers)...`,
+);
+
+let fileResults = await mapPool(stdlibFiles, concurrency, async path => {
+  let content = await readFile(path, 'utf8');
+  return extractSymbols(content);
 });
+
+for (let patterns of fileResults) {
+  for (let key of keys(patterns))
+    symbolSet[key] = symbolSet[key].union(new Set(patterns[key]));
+}
 
 // === REPOSITORY ===
 let repository = (() => {
@@ -203,23 +281,43 @@ let grammar = sortKeys({
 });
 
 // === UNICODE CHARACTER NAMES ===
-let assignedUnicodeChars = from({length: 0x110000}, (_, i) =>
-  fromCodePoint(i),
-).filter(char => /\p{Assigned}/u.test(char));
-let unicodeWords = [
-  ...new Set(
-    assignedUnicodeChars.flatMap(char =>
-      unicodeName(char)
+console.log('Collecting Unicode character names in parallel...');
+let codePointChunks = (() => {
+  let total = 0x110000;
+  let size = Math.ceil(total / concurrency);
+  return from({length: concurrency}, (_, i) => {
+    let fromCp = i * size;
+    let toCp = Math.min(total, fromCp + size);
+    return [fromCp, toCp];
+  }).filter(([a, b]) => a < b);
+})();
+
+let unicodeWordChunks = await mapPool(
+  codePointChunks,
+  concurrency,
+  async ([fromCp, toCp]) => {
+    let words = new Set();
+    for (let i = fromCp; i < toCp; i++) {
+      let char = fromCodePoint(i);
+      if (!/\p{Assigned}/u.test(char)) continue;
+      for (let word of unicodeName(char)
         .normalize('NFD')
         .replace(/-/g, ' ')
         .replace(/[\W--\s]/gv, '')
         .toLowerCase()
-        .split(' '),
-    ),
-  ),
+        .split(' '))
+        if (word) words.add(word);
+    }
+    return words;
+  },
+);
+
+let unicodeWords = [
+  ...unicodeWordChunks.reduce((all, set) => all.union(set), new Set()),
 ]
   .filter(word => word.length >= 2 && !/\d/.test(word))
   .sort((a, b) => a.length - b.length);
+
 grammar.repository['stdlib-unicode-names'] = {
   match:
     '\\b(?!\\d+)((?i:'
@@ -255,7 +353,6 @@ grammar.repository['stdlib-adobe-glyph-list'] = {
 grammar.patterns.push({include: '#stdlib-adobe-glyph-list'});
 
 // === COLOR NAMES ===
-import {colornames} from 'color-name-list';
 // Group by first letter to avoid creating a single huge regex pattern,
 // which can be inefficient to match against.
 grammar.repository['stdlib-color-names'] = {

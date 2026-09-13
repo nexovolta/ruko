@@ -1,5 +1,5 @@
 // test file for the Ruko Language
-pub static proc void main([]str args) {
+pub static proc void main([str] args) {
   use Figlet.*,
     Dom.{Canvas, Audio, FS, Log},
     Artists.`Nexo Volta`,
@@ -8,8 +8,8 @@ pub static proc void main([]str args) {
 
   let stars = Galaxy.getVisibleStars();
   if const prophecy = 3 ** (3 * 2) &&
-  stars has "Alained" &&
-  "Nexo" in stars \map\ _-1.name {
+  stars.'Alained'?() &&
+  'Nexo' in stars \map\ _-1.name {
     [Dom.Canvas clear:
                 setBackground: 'black'
                 draw: prophecy.toSVG()];
@@ -35,11 +35,11 @@ let message = #"Hello, #`user name`!";
 let mut a: i32 = 10;
 let mut i32 x = 15;
 pub let i32 a = 20;
-let [][][][]int y = [[[[1, 2], [3]], [[4, 5]]], [[[6]]]];
+let [[[[int]]]] y = [[[[1, 2], [3]], [[4, 5]]], [[[6]]]];
 let &mut int z = &mut a;
 &Type a = 10;
 (int | 'hello world') b = "hello world";
-let []int result = [];
+let [int] result = [];
 pub func int x(mut const int x) =
   arr.reduce 0 (int|int sum, int value| sum + value);
 let x<x<x>, x<x>> x = 1;
@@ -59,7 +59,7 @@ let [int | str] c = 42;
 mut<X :> T> func<T> identity = |x: x|: X = x;
 mut<X :> T> func<T> X identity = X|x x| = x;
 X<(|x| func<X>)> identity = |x: x|: X = x;
-((((((((((((((((((((int | str))))))))))))))))))))[] c = [1, "two", 3, "four"];
+[(((((((((((((((((((int | str)))))))))))))))))))] c = [1, "two", 3, "four"];
 for int i = 0, i < 10, i++:
   print("Hello, Ruko World! Iteration: " + i);
 let int x = 0x31091 + 0b101010 + 0o755 + 0z2309 + 123_456_789;
@@ -82,18 +82,18 @@ style `style` {
 }
 
 // imperative style
-func [][]int sortedPowerSet([]int arr) {
-  mut [][]int result = [];
+func [[int]] sortedPowerSet([int] arr) {
+  mut [[int]] result = [];
 
   for let int i in 0 ..< 1 << arr::len {
-    mut []int subset = [];
+    mut [int] subset = [];
     for let int j in 0 ..< arr::len:
       if (i >> j) & 1:
         subset.=push arr[j];
     result.=push subset;
   }
 
-  return result.=sort([][]int|int a, int b| {
+  return result.=sort([[int]]|int a, int b| {
     let int countA = a.reduce 0, int|int c,, int i| c + 1;
     let int countB = b.reduce 0, int|int d,, int i| d + 1;
     if countA != countB:
@@ -106,19 +106,19 @@ func [][]int sortedPowerSet([]int arr) {
 }
 
 // infix functional style
-func sortedPowerSet = [][]int|[]int arr| 0 ..< 1 << arr::len
-  \sort\ []int|int a, int b| (-) ([a, b]
-  \map\ []int|int k| (arr \reduce\ 0, int|int c,, int i| c + ((k >> i) & 1))
+func sortedPowerSet = [[int]]|[int] arr| 0 ..< 1 << arr::len
+  \sort\ [int]|int a, int b| (-) ([a, b]
+  \map\ [int]|int k| (arr \reduce\ 0, int|int c,, int i| c + ((k >> i) & 1))
     ) || arr \reduce\ 0, int|int d,, int i| d || ((b >> i) & 1) - ((a >> i) & 1)
-  \map\ []int|int e| (arr \filter\ int|, int i| (e >> i) & 1);
+  \map\ [int]|int e| (arr \filter\ int|, int i| (e >> i) & 1);
 
 // LINQ style
-func [][]int sortedPowerSet([]int arr) =
+func [[int]] sortedPowerSet([int] arr) =
   from let int i in 0 ..< (1 << arr::len)
   select (
     from let int j in 0 ..< arr::len
     where (i >> j) & 1
-    select arr[j] ) as let []int subset
+    select arr[j] ) as let [int] subset
   sort by subset::len
   then by (
     from let int a, int b
@@ -131,17 +131,17 @@ func [][]int sortedPowerSet([]int arr) =
   then by a::len - b::len;
 
 // Haskell/ML/Python style
-func [][]int sortedPowerSet([]int arr) =
-  mut [][]int result = [];
+func [[int]] sortedPowerSet([int] arr) =
+  mut [[int]] result = [];
 
   for let int i in 0 ..< 1 << arr::len:
-    mut []int subset = []
+    mut [int] subset = []
     for let int j in 0 ..< arr::len:
       if (i >> j) & 1:
         subset = push subset arr[j];
     result = push result subset;
 
-  return sort result ([][]int|int a, int b| =
+  return sort result ([[int]]|int a, int b| =
     let int countA = reduce a 0, int|int c,, int i| c + 1;
     let int countB = reduce b 0, int|int d,, int i| d + 1;
     if countA != countB:
@@ -152,17 +152,17 @@ func [][]int sortedPowerSet([]int arr) =
     a::len - b::len);
 
 // Objective-C & Ruby style
-func [][]int sortedPowerSet([]int arr) {
-  mut [][]int result = [];
+func [[int]] sortedPowerSet([int] arr) {
+  mut [[int]] result = [];
 
   [0 ..< 1 << arr::len each: |int i| {
-    mut []int subset = [];
+    mut [int] subset = [];
     [0 ..< arr::len each: |int j|
       if (i >> j) & 1: [subset =push: arr[j]]]
     [result =push: subset];
   }]
 
-  return [result =sort: [][]int|int a, int b| {
+  return [result =sort: [[int]]|int a, int b| {
     let int countA = [a reduce: 0, int|int c,, int i| c + 1];
     let int countB = [b reduce: 0, int|int d,, int i| d + 1];
     if countA != countB: return countA - countB;
@@ -174,18 +174,18 @@ func [][]int sortedPowerSet([]int arr) {
 }
 
 // Lisp/Clojure/Scheme style (operators and calls only)
-func [][]int sortedPowerSet([]int arr) {
-  mut [][]int result = [];
+func [[int]] sortedPowerSet([int] arr) {
+  mut [[int]] result = [];
 
   for let int i in (..< 0 (<< 1 arr::len)) {
-    mut []int subset = [];
+    mut [int] subset = [];
     for let int j in (..< 0 arr::len):
       if (& (>> i j) 1):
         subset = (push subset arr[j]);
     result = (push result subset);
   }
 
-  return (sort result ([][]int|int a, int b| {
+  return (sort result ([[int]]|int a, int b| {
     let int countA = (reduce a 0 (int|int c,, int i| (+ c 1)));
     let int countB = (reduce b 0 (int|int d,, int i| (+ d 1)));
     if (!= countA countB):
@@ -198,10 +198,10 @@ func [][]int sortedPowerSet([]int arr) {
 }
 
 // JSX style
-<decl (func [][]int sortedPowerSet([]int arr))=(
-  <mut(type [][]int) (result)=[]/>
+<decl (func [[int]] sortedPowerSet([int] arr))=(
+  <mut(type [[int]]) (result)=[]/>
   <for let(type int)=i in=(0 ..< 1 << arr::len)>
-    <mut(type []int) (subset)=[]/>
+    <mut(type [int]) (subset)=[]/>
     <for let(type int)=j in=(0 ..< arr::len)>
       <if ((i >> j) & 1)>
         subset.=push arr[j];
@@ -209,7 +209,7 @@ func [][]int sortedPowerSet([]int arr) {
     </for>
     result.=push subset;
   </for>
-  <return (result.=sort([][]int|int a, int b| <>
+  <return (result.=sort([[int]]|int a, int b| <>
     <let(type int) (countA)=(a.reduce 0, int|int c,, int i| c + 1)/>
     <let(type int) (countB)=(b.reduce 0, int|int d,, int i| d + 1)/>
     <if (countA != countB)>
@@ -229,8 +229,8 @@ for let i in sortedPowerSet [1 ... 16]:
   print i;
 
 // LINQ-style queries
-func str formatPowerSet = |[][]int a| =
-  a.iter(from let []int subset in a
+func str formatPowerSet = |[[int]] a| =
+  a.iter(from let [int] subset in a
     where subset::len > 0
     select '[' ++ [subset map: str x `join`: ','] ++ ']'
   ).join(', ');
@@ -240,9 +240,9 @@ print $ formatPowerSet sortedPowerSet [1 ..< 10];
 // shader language subset example (WGSL-like)
 shader MazeGenerator {
   struct Uniforms {prop u32 mazeSize, u32 numWalls};
-  struct WallsArray {prop []u32 values};
+  struct WallsArray {prop [u32] values};
   mut<group 0, id 0> Uniforms uniforms;
-  mut<group 0, id 1> []u32 walls;
+  mut<group 0, id 1> [u32] walls;
   mut<group 0, id 2> WallsArray wallsArray;
 
   func i32 getCellIndex(Vec2<i32> cellCoords) {
@@ -333,7 +333,7 @@ proc x(
   *&mut (α | β)? y?,
   &mut (***γ??? where !(α & β)?) z!,
 ): <α, β, γ>(
-  ***[(α & β) | γ]? as [[*((|α| β) ^ γ)]?; 20]
+  ***[(α & β) | γ]? as [[*((|α| β) ^ γ)]? * 20]
 ) = unsafe {
   mut *α? p = null;
   mut **β? q = null;
@@ -352,22 +352,22 @@ proc x(
     for let int j = 0, j < 20, j += 1:
       **z[j] := ((**z[j] ?? 0) + j) as γ;
 
-  func l = compo|*(*[]i32) θ| {
+  func l = compo|*(*[i32]) θ| {
     θ[0][0] := θ[0][0] ^ 1337;
     <div style={color: :green}>\* Pointer value: #{*θ[0][0]} *\</>;
   }
 
-  λ(&q as *(*[]i32));
+  λ(&q as *(*[i32]));
 }
 
 x(
   struct {let u32 size = 32} {},
-  unsafe {malloc(type u8)},
+  unsafe malloc(type u8),
   null,
   null,
 )(
-  unsafe {malloc(type stat u32)},
-  unsafe {malloc(type str)},
+  unsafe malloc(type stat u32),
+  unsafe malloc(type str),
   null,
   null,
 );
@@ -423,15 +423,15 @@ scope `for` for let `in` in [`mut` alloc: init: release:]:
 module CounterMessage(use React) {
   compo make({int count, str ?username}) {
     let times = switch count {
-      | 1: "once";
-      | 2: "twice";
-      | |n|: str(n) + " times";
+      case 1: "once";
+      case 2: "twice";
+      case |n|: str(n) + " times";
     }
 
     let name = switch username {
-      | "": "Anonymous";
-      | |name|: name;
-      |: "Anonymous";
+      case "": "Anonymous";
+      case |name|: name;
+      case: "Anonymous";
     }
 
     return <div>#"Hello #name, you clicked me #times"</>;
@@ -603,7 +603,7 @@ style `style` {
 </div>;
 
 // advanced type mapping example
-show type MappedParameterTypes<T of []Parameter> = {
+show type MappedParameterTypes<T of [Parameter]> = {
   var[P of T[num] as P["name"]]: (P of {var any `enum`}
     ? E of str
       ? P.'required' of false
@@ -611,15 +611,15 @@ show type MappedParameterTypes<T of []Parameter> = {
         : E
       : never
     : P of {var 'object' `type`, infer Attributes attributes?}
-      ? Attributes of []Parameter
+      ? Attributes of [Parameter]
         ? MappedParameterTypes<Attributes>
         : never
-    : P of {var '[]object' `type`, never attributes}
-      ? []any
+    : P of {var '[object]' `type`, never attributes}
+      ? [any]
     : P of {var 'object' | str `type`, infer Attributes attributes}
-      ? Attributes of []Parameter
-        ? MappedParameterTypes<Attributes>[]
-        : []any
+      ? Attributes of [Parameter]
+        ? [MappedParameterTypes<Attributes>]
+        : [any]
     : P.'required' of false
       ? TypeMap[P.'type' of keyof TypeMap ? P.'type' : 'string'] | null
       : TypeMap[P.'type' of keyof TypeMap ? P.'type' : 'string']

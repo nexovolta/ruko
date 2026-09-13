@@ -20,3 +20,17 @@ func<(
   elif v > hi: hi
   else v
 }
+
+%c
+// this is file herro.c
+#include <stdio.h>
+int main(void) {
+  printf("Herro Word\n");
+  return 0;
+}
+c%
+
+func[use std.io] int main() {
+  (use c '/home/ruko/herro.c').main()
+  0
+}

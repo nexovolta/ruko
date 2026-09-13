@@ -1,0 +1,204 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "copyright_notice": "Copyright 2020 Stephen Tetley, Magnus Madsen",
+  "license": "Apache License, Version 2.0",
+  "name": "flix",
+  "scopeName": "source.flix",
+  "patterns": [
+    {"include": "#function_declarations"},
+    {"include": "#constants"},
+    {"include": "#keywords"},
+    {"include": "#types"},
+    {"include": "#literal_char"},
+    {"include": "#literal_string"},
+    {"include": "#literal_int"},
+    {"include": "#annotations"},
+    {"include": "#comments"},
+    {"include": "#function_names"},
+    {"include": "#variables"}
+  ],
+  "repository": {
+    "function_declarations": {
+      "name": "meta.function.flix",
+      "begin": "(?:(\\bpub)\\s+)?(def\\b)\\s+([a-z_][_![:alnum:]]*)\\s*[\\(\\[]",
+      "beginCaptures": {
+        "1": {"name": "keyword.declaration.flix"},
+        "2": {"name": "keyword.declaration.flix"},
+        "3": {"name": "entity.name.function.flix"}
+      },
+      "end": "\\)\\s*:",
+      "patterns": [
+        {"include": "#types"},
+        {"include": "#comments"},
+        {"include": "#variables"}
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.unit.flix",
+          "match": "\\b\\(\\)\\b"
+        },
+        {
+          "name": "constant.language.bool.flix",
+          "match": "\\b(true|false)\\b"
+        },
+        {
+          "name": "constant.language.null.flix",
+          "match": "\\b(null)\\b"
+        },
+        {
+          "name": "constant.language.effect.flix",
+          "match": "\\b(Pure|Impure)\\b"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.choose.flix",
+          "match": "\\b(choose)\\b"
+        },
+        {"name": "keyword.control.if.flix", "match": "\\b(if|else)\\b"},
+        {
+          "name": "keyword.control.match.flix",
+          "match": "\\b(case|match)\\b"
+        },
+        {
+          "name": "keyword.control.try.flix",
+          "match": "\\b(try|catch)\\b"
+        },
+        {
+          "name": "keyword.control.spawn.flix",
+          "match": "\\b(spawn)\\b"
+        },
+        {
+          "name": "keyword.operator.bool.flix",
+          "match": "\\b(not|and|or)\\b"
+        },
+        {
+          "name": "keyword.declaration.flix",
+          "match": "\\b(namespace|def|law|enum|case|type|rel|lat|alias|class|instance|with|pub)\\b"
+        },
+        {"name": "keyword.expression.cast.flix", "match": "\\b(as)\\b"},
+        {
+          "name": "keyword.expression.default.flix",
+          "match": "\\b(default)\\b"
+        },
+        {
+          "name": "keyword.expression.fixpoint.flix",
+          "match": "\\b(from|into|project|solve|query|where|select)\\b"
+        },
+        {
+          "name": "keyword.expression.force.flix",
+          "match": "\\b(force)\\b"
+        },
+        {
+          "name": "keyword.expression.hole.flix",
+          "match": "(\\?\\?\\?|\\?[a-z0-9]+)"
+        },
+        {
+          "name": "keyword.expression.import.flix",
+          "match": "\\b(import)\\b"
+        },
+        {
+          "name": "keyword.expression.let.flix",
+          "match": "\\b(let\\*|let)\\b"
+        },
+        {
+          "name": "keyword.expression.lazy.flix",
+          "match": "\\b(lazy)\\b"
+        },
+        {
+          "name": "keyword.expression.references.flix",
+          "match": "\\b(ref|deref)\\b"
+        },
+        {"name": "keyword.use.flix", "match": "\\b(use)\\b"},
+        {"name": "keyword.symbols.flix", "match": "(\\->|~>|<\\-|=>)"},
+        {
+          "name": "keyword.operator.flix",
+          "match": "(==|!=|>=|<=|>|<|\\+|\\-|\\*|%|>>>|<<<|::|:::|:\\-|:=)"
+        },
+        {"name": "keyword.operator.semicolon.flix", "match": ";"},
+        {
+          "name": "storage.type.modifier.flix",
+          "match": "\\b(inline|mut|lawless|opaque|override|sealed|unlawful)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "entity.name.type",
+          "match": "\\b(_?[A-Z][_[:alnum:]]*)\\b"
+        }
+      ]
+    },
+    "literal_char": {
+      "name": "string.quoted.single.flix",
+      "begin": "'",
+      "end": "'",
+      "patterns": [{"name": "constant.character.escape", "match": "\\\\."}]
+    },
+    "literal_string": {
+      "name": "string.quoted.double.flix",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {"name": "constant.character.escape.flix", "match": "\\\\."},
+        {
+          "begin": "\\$\\{",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.template-expression.begin.flix"
+            }
+          },
+          "end": "\\}",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.template-expression.end.flix"
+            }
+          }
+        }
+      ]
+    },
+    "literal_int": {
+      "name": "constant.numeric.decimal.flix",
+      "match": "[0-9]+"
+    },
+    "annotations": {
+      "patterns": [
+        {"name": "storage.type.annotation.flix", "match": "@benchmark"},
+        {"name": "storage.type.annotation.flix", "match": "@test"},
+        {"name": "storage.type.annotation.flix", "match": "@Space"},
+        {"name": "storage.type.annotation.flix", "match": "@Time"}
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {"name": "comment.line.double-slash.flix", "match": "//.*$"},
+        {"name": "comment.block.flix", "begin": "/\\*", "end": "\\*/"}
+      ]
+    },
+    "function_names": {
+      "patterns": [
+        {
+          "match": "\\b([a-z][_![:alnum:]]*)\\s*\\(",
+          "captures": {"1": {"name": "entity.name.function.flix"}}
+        },
+        {
+          "name": "entity.name.function.flix",
+          "match": "(?<=\\|>\\s*)([a-z][_![:alnum:]]*)"
+        },
+        {
+          "name": "entity.name.function.flix",
+          "match": "(?<=\\b[A-Z][_[:alnum:]]*\\.\\s*)([a-z][_![:alnum:]]*)"
+        }
+      ]
+    },
+    "variables": {
+      "name": "variable.flix",
+      "match": "\\b([a-z_][_[:alnum:]]*)\\b"
+    }
+  }
+}

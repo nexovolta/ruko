@@ -174,7 +174,7 @@ let i32 x2 = 10
 let f64 pi = 3.14159
 let str msg = "hello"
 let bool ok = true
-let []int xs = [1, 2, 3]
+let [int] xs = [1, 2, 3]
 
 // ----- Postfix type annotations (Rust-style) -----
 // A colon after the identifier followed by a type.
@@ -182,7 +182,7 @@ let x3: i32 = 10
 let pi2: f64 = 3.14159
 let msg2: str = "hello"
 let ok2: bool = true
-let xs2: []int = [1, 2, 3]
+let xs2: [int] = [1, 2, 3]
 
 // ----- Mixed annotation -----
 let (y: int | str, str b2, f64 c2) = (42, "hello", 3.14)
@@ -311,10 +311,10 @@ let mutRef: &mut i32   = &mut someInt
 let ptrPtr: **i32      = null   // pointer to pointer
 
 // ----- Array types -----
-let arr1: []int          = [1, 2, 3]        // dynamic array / slice
-let arr2: [3]int         = [1, 2, 3]        // fixed-size array (N=3)
-let arr3: [][]int        = [[1,2],[3,4]]    // 2-D array
-let arr4: [4][4]f32      = /* ... */ undef  // 4×4 matrix
+let arr1: [int]          = [1, 2, 3]        // dynamic array / slice
+let arr2: [int * 3]         = [1, 2, 3]        // fixed-size array (N=3)
+let arr3: [[int]]        = [[1,2],[3,4]]    // 2-D array
+let arr4: [[f32 * 4] * 4]      = /* ... */ undef  // 4×4 matrix
 
 // ----- Tuple types -----
 let tup1: (int, str)           = (1, "a")
@@ -323,7 +323,7 @@ let tup3: (i32, (bool, char))  = (0, (true, 'x'))  // nested
 
 // ----- Dictionary / map types -----
 let dict1: {str: int} = {"a": 1}
-let dict2: {int: []str} = {1: ["x", "y"]}
+let dict2: {int: [str]} = {1: ["x", "y"]}
 
 // ----- Union types -----
 let val: int | str = 42        // value is int OR str
@@ -348,7 +348,7 @@ let fn4: async func(str): str    = async |s| s ++ "!"
 type Coord = (f64, f64)
 type Transform<T> = func(T): T
 type Callback = proc(str): void
-type Matrix4 = [4][4]f32
+type Matrix4 = [[f32 * 4] * 4]
 type NodeRef = *Node
 
 // ----- Type parameters (generics) -----
@@ -357,7 +357,7 @@ class Stack<T> { /* ... */ }
 struct Pair2<A, B> { A first; B second }
 
 // Type parameter with constraint
-func sum<T: Numeric>([]T xs): T { xs.fold(T.zero, +) }
+func sum<T: Numeric>([T] xs): T { xs.fold(T.zero, +) }
 func eq<T: Eq & Hash>(T a, T b): bool { a == b }
 
 // Inferred type parameter
@@ -419,7 +419,7 @@ if x can .serialize: x.serialize()
 
 // ----- Type brackets -----
 // Square brackets in types for fixed-size arrays
-let m2: [3][3]f64 = [[1,0,0],[0,1,0],[0,0,1]]
+let m2: [[f64 * 3] * 3] = [[1,0,0],[0,1,0],[0,0,1]]
 
 // Angle brackets for generics
 let h2: Map<str, Vec<int>> = Map!()
@@ -438,7 +438,7 @@ let no:  bool = false
 let nothing: str?   = null    // null — absence of value
 let bad: f64        = nan     // not-a-number
 let nowhere: *int   = null    // null pointer
-let empty: []int    = []      // empty array (not null, but zero-length)
+let empty: [int]    = []      // empty array (not null, but zero-length)
 let und             = undef   // undefined (uninitialized region)
 let inf: f64        = infty   // positive infinity
 let negInf: f64     = -infty  // negative infinity
@@ -460,7 +460,7 @@ class Foo {
 }
 
 // ----- Context variables -----
-func sum([]int xs): int {
+func sum([int] xs): int {
   xs.fold(0, |acc, it| acc + it)  // `it` — implicit iteration variable
 }
 
@@ -483,7 +483,7 @@ let s2: Option<int>       = None
 let r1: Result<int, str>  = Okay(0)
 let r2: Result<int, str>  = Valid(0)
 let r3: Result<int, str>  = Error("oops")
-let r4: Option<[]int>     = Empty
+let r4: Option<[int]>     = Empty
 
 // ----- Decorator syntax -----
 @deprecated("use newFunc instead")
@@ -1317,7 +1317,7 @@ This is a **block** of Markdown content inside a Ruko source file.
 ### Links & Images
 
 [Ruko Language](https://github.com/ruko-lang/ruko)
-![Logo](assets/logo.png "Optional title")
+![Logo (assets/logo.png "Optional title")]
 
 ### Math
 
@@ -1375,9 +1375,9 @@ func greeting(str name): str {
 // ----- Markdown doc comments -----
 \\ **sortedPowerSet** — returns all sorted subsets of `xs`.
 \\ Parameters:
-\\ - `xs: []T` — input array
-\\ Returns: `[][]T`
-func sortedPowerSet<T: Ord>([]T xs): [][]T {
+\\ - `xs: [T]` — input array
+\\ Returns: `[[T]]`
+func sortedPowerSet<T: Ord>([T] xs): [[T]] {
   xs
     |> powerSet
     |> map(sort)
@@ -1920,7 +1920,7 @@ module Sort {
   /// Sorts an array using merge sort.
   /// - Time: $O(n \log n)$
   /// - Space: $O(n)$
-  func []T mergeSort<T: Ord>([]T xs) {
+  func [T] mergeSort<T: Ord>([T] xs) {
     if xs.len() <= 1: xs
     else {
       let mid = xs.len() / 2
@@ -2235,7 +2235,7 @@ func refExamples() {}
  * @param {function(string, number): boolean} predicate - function type
  * @param {{x: number, y: number}} point - inline object type
  */
-func complex(str | int id, []str tags, bool? flag, bool required, fn predicate, {x: int, y: int} point) {}
+func complex(str | int id, [str] tags, bool? flag, bool required, fn predicate, {x: int, y: int} point) {}
 
 \* ============================================================
    18 — FUNCTION CALLS
@@ -2363,7 +2363,7 @@ set.=remove(item)
 // ----- Constructor calls  new -----
 let pt  = new Point(3, 4)
 let box = new Box(width: 100, height: 50)
-let arr2 = new [10]int(0)        // [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+let arr2 = new [int * 10](0)        // [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 // ----- Async call -----
 let r46 = await fetch("https://api.example.com/data")
@@ -2371,7 +2371,7 @@ let r47 = await Promise.all([fetchA(), fetchB(), fetchC()])
 
 // ----- Call with type parameter inferred -----
 let r48 = fromJson(raw)           // T inferred from context
-let r49: []int = fromJson(raw)    // T = []int inferred from binding
+let r49: [int] = fromJson(raw)    // T = [int] inferred from binding
 
 // ----- Named + positional mix -----
 let r50 = lerp(a, b, t: 0.5)
@@ -2437,32 +2437,32 @@ func repeat(str s, int n = 3): str {
 }
 
 // ----- Rest parameters (variadic) -----
-func sum([]int ..nums): int {
+func sum([int] ..nums): int {
   nums.fold(0, |acc, x| acc + x)
 }
 
-func log(str level, []str ..messages): void {
+func log(str level, [str] ..messages): void {
   messages.each(|m| print(#"[#level] #m"))
 }
 
 // Named rest
-func record(str name, []int ..values): void {
+func record(str name, [int] ..values): void {
   print(#"#{name}: #values")
 }
 
 // ----- Generic type parameters in signatures -----
-func map<T, U>([]T xs, fn(T): U f): []U {
+func map<T, U>([T] xs, fn(T): U f): [U] {
   xs.map(f)
 }
 
 func identity<T>(T x): T { x }
 
-func zip<A, B>([]A as_, []B bs): [](A, B) {
+func zip<A, B>([A] as_, [B] bs): [(A, B)] {
   as_.zip(bs)
 }
 
 // ----- Constrained type parameters -----
-func sort<T: Ord>([]T xs): []T { xs.sorted() }
+func sort<T: Ord>([T] xs): [T] { xs.sorted() }
 func clamp<T: Ord + Copy>(T v, T lo, T hi): T {
   if v < lo: lo
   elif v > hi: hi
@@ -2471,8 +2471,8 @@ func clamp<T: Ord + Copy>(T v, T lo, T hi): T {
 
 // ----- Lambda parameters in signatures -----
 func applyTwice<T>(fn(T): T f, T x): T { f(f(x)) }
-func filter<T>([]T xs, fn(T): bool pred): []T { xs.filter(pred) }
-func fold<T, U>([]T xs, U init, fn(U, T): U f): U { xs.fold(init, f) }
+func filter<T>([T] xs, fn(T): bool pred): [T] { xs.filter(pred) }
+func fold<T, U>([T] xs, U init, fn(U, T): U f): U { xs.fold(init, f) }
 
 // ----- Binding parameters (destructuring in signature) -----
 func swapPair({first: a, second: b}) { (b, a) }
@@ -2542,7 +2542,7 @@ let node as a = getParent()
 // ----- Type-annotated destructuring -----
 let {x: int, y: int} = pixel
 let (a: f64, b: f64, c: f64) = triangle
-let [head2: str, ..tail: []str] = words
+let [head2: str, ..tail: [str]] = words
 
 \* ============================================================
    20 — VARIABLES & PROPERTY ACCESS
@@ -3017,7 +3017,7 @@ iter countdown(int n): iter<int> {
 
 // Type alias
 type Point2D = (f64, f64)
-type Matrix  = [][]f64
+type Matrix  = [[f64]]
 
 // Class, trait, interface, enum, record
 class Animal { val name: str }
@@ -3205,14 +3205,14 @@ let inferred2 = "world"      // str
 // ============================================================
 
 // Array types
-let []int   arr1 = [1, 2, 3]
-let arr2: []int = [1, 2, 3]
+let [int]   arr1 = [1, 2, 3]
+let arr2: [int] = [1, 2, 3]
 
-let [5]f64  vec5 = [0.0, 1.0, 2.0, 3.0, 4.0]   // fixed size
-let vec6: [5]f64 = [0.0, 1.0, 2.0, 3.0, 4.0]
+let [f64 * 5]  vec5 = [0.0, 1.0, 2.0, 3.0, 4.0]   // fixed size
+let vec6: [f64 * 5] = [0.0, 1.0, 2.0, 3.0, 4.0]
 
 // Nested arrays
-let [][]str grid1: [][]str = [["a"], ["b", "c"]]
+let [[str]] grid1: [[str]] = [["a"], ["b", "c"]]
 
 // Tuple types
 let (int, str) pair1 = (42, "hello")
@@ -3223,7 +3223,7 @@ let triple2: (f64, f64, f64) = (1.0, 2.0, 3.0)
 
 // Dict / map types
 let {str: int}  wordCounts: {str: int}  = {"hello": 1, "world": 2}
-let {int: []str} groupMap = {}
+let {int: [str]} groupMap = {}
 
 // ============================================================
 // OPTIONAL AND RESULT TYPES
@@ -3275,7 +3275,7 @@ type Predicate<T>  = fn(T): bool
 let list3: Vec<int> = Vec.new()
 let set1:  Set<str> = Set.new()
 let pair3: Pair<int, str> = Pair.new(1, "one")
-let map2:  Map<str, []int> = Map.new()
+let map2:  Map<str, [int]> = Map.new()
 
 // Nested generics
 let nested2: Vec<Vec<str>> = Vec.new()
@@ -3297,10 +3297,10 @@ func mixed(int a, b: int): int { a + b }
 
 // Generic function
 func identity<T>(T x): T { x }
-func zip2<A, B>([]A as2, []B bs): [](A, B) { as2.zip(bs) }
+func zip2<A, B>([A] as2, [B] bs): [(A, B)] { as2.zip(bs) }
 
 // Constrained type parameter
-func sort2<T: Ord>([]T xs): []T { xs.sorted() }
+func sort2<T: Ord>([T] xs): [T] { xs.sorted() }
 func clamp2<T: Ord + Copy>(T v, T lo, T hi): T {
   if v < lo: lo
   elif v > hi: hi
@@ -3308,13 +3308,13 @@ func clamp2<T: Ord + Copy>(T v, T lo, T hi): T {
 }
 
 // Multiple constraints
-func printSorted<T: Ord + Display + Clone>([]T xs): void {
+func printSorted<T: Ord + Display + Clone>([T] xs): void {
   xs.sorted().each(print)
 }
 
 // Higher-kinded type simulation
-func map2<T, U>([]T xs, fn(T): U f): []U { xs.map(f) }
-func flatMap<T, U>([]T xs, fn(T): []U f): []U { xs.flatMap(f) }
+func map2<T, U>([T] xs, fn(T): U f): [U] { xs.map(f) }
+func flatMap<T, U>([T] xs, fn(T): [U] f): [U] { xs.flatMap(f) }
 
 // ============================================================
 // TYPED DESTRUCTURING IN DECLARATIONS
@@ -3329,7 +3329,7 @@ let (int a, int b, int c) = triple1
 let (f64 lat, f64 lon) = coord
 
 // Array destructuring with types
-let [int head2, []int ..rest] = numbers
+let [int head2, [int] ..rest] = numbers
 let [str first_word, str second_word] = words
 
 // ============================================================
@@ -3340,7 +3340,7 @@ type ID   = int
 type Name = str
 type Vec2 = (f64, f64)
 type Vec3 = (f64, f64, f64)
-type Matrix4 = [4][4]f64
+type Matrix4 = [[f64 * 4] * 4]
 type Callback<T> = fn(T): void
 type Maybe<T> = T?
 type Result2<T, E> = T | E
@@ -3576,7 +3576,7 @@ use System do {
 // RETURN / YIELD / AWAIT
 // ============================================================
 
-func []int getEven([]int xs) {
+func [int] getEven([int] xs) {
   return xs.filter(|x| x % 2 == 0)
 }
 
@@ -3770,8 +3770,8 @@ let [..init, last] = arr
 let [h, _, third2, ..remaining] = arr
 
 // Typed
-let [int h2, int h3, ..[]int t] = int_arr
-let [str first_w, ..str[] more] = words
+let [int h2, int h3, ..[int] t] = int_arr
+let [str first_w, ..[str] more] = words
 
 // Nested arrays
 let [[x4, y4], [x5, y5]] = pairs_arr
@@ -3968,7 +3968,7 @@ let log_all  = |str level, *str messages| messages.each(|m| print(#"[#level] #m"
 let double2: fn(int): int = |x| x * 2
 
 // In a collection
-let fns: []fn(int): int = [|x| x, |x| x * 2, |x| x * x]
+let fns: [fn(int): int] = [|x| x, |x| x * 2, |x| x * x]
 
 // Returned from function
 func make_adder(int n): fn(int): int { |x| x + n }
@@ -4092,7 +4092,7 @@ let {name: n3, email? , phone?} = contact
 
 // Type-annotated object pattern
 let {x: int, y: int, z: int} = vec3_obj
-let {name: str, scores: []int} = player
+let {name: str, scores: [int]} = player
 
 // Object pattern in function param
 func printUser({name, age, title = "Mx."}: User): void {
@@ -4165,8 +4165,8 @@ let [..init, last3] = arr
 let [a5, _, c4, ..more] = arr     // skip second element
 
 // Typed
-let [int h2, ..[]int t2] = int_arr
-let [str word, ..str[] words2] = word_list
+let [int h2, ..[int] t2] = int_arr
+let [str word, ..[str] words2] = word_list
 
 // Nested arrays
 let [[x4, y4], [x5, y5]] = matrix_row
@@ -4245,7 +4245,8 @@ let {
 
 \* ============================================================
    28 — SLICE SYNTAX
-   Array/string slicing with start:end:step notation.
+   Array/string slicing with start;end;step notation.
+   Spaces only after ;, omitted next to ; [ or ].
    ============================================================ *\
 
 // ============================================================
@@ -4255,64 +4256,64 @@ let {
 let arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 let str2 = "Hello, World!"
 
-// [start:end] — from start up to (not including) end
-let s1 = arr[2 : 5]            // [2, 3, 4]
-let s2 = str2[0 : 5]           // "Hello"
-let s3 = arr[1 : 4]            // [1, 2, 3]
+// [start; end] — from start up to (not including) end
+let s1 = arr[2; 5]            // [2, 3, 4]
+let s2 = str2[0; 5]           // "Hello"
+let s3 = arr[1; 4]            // [1, 2, 3]
 
-// [start:] — from start to end
-let s4 = arr[3 : ]             // [3, 4, 5, 6, 7, 8, 9]
-let s5 = str2[7 : ]            // "World!"
+// [start;] — from start to end
+let s4 = arr[3;]             // [3, 4, 5, 6, 7, 8, 9]
+let s5 = str2[7;]            // "World!"
 
-// [:end] — from beginning up to end
-let s6 = arr[ : 5]             // [0, 1, 2, 3, 4]
-let s7 = str2[ : 5]            // "Hello"
+// [;end] — from beginning up to end
+let s6 = arr[;5]             // [0, 1, 2, 3, 4]
+let s7 = str2[;5]            // "Hello"
 
-// [:] — full copy
-let s8  = arr[ : ]             // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-let s9  = str2[ : ]            // "Hello, World!"
+// [;] — full copy
+let s8  = arr[;]             // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+let s9  = str2[;]            // "Hello, World!"
 
 // ============================================================
 // STEP SLICES
 // ============================================================
 
-// [start:end:step]
-let s10 = arr[0 : 9 : 2]       // [0, 2, 4, 6, 8]  — every other
-let s11 = arr[1 : 9 : 2]       // [1, 3, 5, 7]      — every other starting at 1
-let s12 = arr[ : : 3]          // [0, 3, 6, 9]      — every third
+// [start; end; step]
+let s10 = arr[0; 9; 2]       // [0, 2, 4, 6, 8]  — every other
+let s11 = arr[1; 9; 2]       // [1, 3, 5, 7]      — every other starting at 1
+let s12 = arr[;;3]          // [0, 3, 6, 9]      — every third
 
 // Reverse with step -1
-let s13 = arr[ : : -1]         // [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
-let s14 = str2[ : : -1]        // "!dlroW ,olleH"
+let s13 = arr[;;-1]         // [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+let s14 = str2[;;-1]        // "!dlroW ,olleH"
 
 // Partial reverse
-let s15 = arr[5 : 1 : -1]      // [5, 4, 3, 2]
+let s15 = arr[5; 1; -1]      // [5, 4, 3, 2]
 
 // Every 2 reversed
-let s16 = arr[8 : 0 : -2]      // [8, 6, 4, 2]
+let s16 = arr[8; 0; -2]      // [8, 6, 4, 2]
 
 // ============================================================
 // NEGATIVE INDICES
 // ============================================================
 
 // Negative: count from end
-let s17 = arr[-3 : ]           // [7, 8, 9]  — last 3
-let s18 = arr[ : -3]           // [0, 1, 2, 3, 4, 5, 6]  — up to last 3 (exclusive)
-let s19 = arr[-5 : -2]         // [5, 6, 7]
-let s20 = str2[-6 : ]          // "World!"
-let s21 = str2[ : -7]          // "Hello,"
+let s17 = arr[-3;]           // [7, 8, 9]  — last 3
+let s18 = arr[;-3]           // [0, 1, 2, 3, 4, 5, 6]  — up to last 3 (exclusive)
+let s19 = arr[-5; -2]         // [5, 6, 7]
+let s20 = str2[-6;]          // "World!"
+let s21 = str2[;-7]          // "Hello,"
 
 // ============================================================
 // EXPRESSION INDICES
 // ============================================================
 
 let n = 5
-let s22 = arr[n : ]            // from index 5
-let s23 = arr[ : n]            // up to index 5 (exclusive)
-let s24 = arr[n - 2 : n + 2]   // [3, 4, 5, 6]
+let s22 = arr[n;]            // from index 5
+let s23 = arr[;n]            // up to index 5 (exclusive)
+let s24 = arr[n - 2; n + 2]   // [3, 4, 5, 6]
 
-let s25 = arr[mid - 1 : mid + 1]   // dynamic middle window
-let s26 = arr[start : end : stride]
+let s25 = arr[mid - 1; mid + 1]   // dynamic middle window
+let s26 = arr[start; end; stride]
 
 // ============================================================
 // MULTI-DIMENSIONAL SLICES
@@ -4321,36 +4322,36 @@ let s26 = arr[start : end : stride]
 let mat = [[1,2,3],[4,5,6],[7,8,9]]
 
 // Row slice
-let rows = mat[1 : ]          // rows 1 and 2: [[4,5,6],[7,8,9]]
+let rows = mat[1;]          // rows 1 and 2: [[4,5,6],[7,8,9]]
 let row1 = mat[0]             // [1, 2, 3]
 
 // Column slice (Ruko supports extended indexing)
-let col0 = mat[ : , 0]        // [1, 4, 7]  — first column
-let col1 = mat[ : , 1]        // [2, 5, 8]  — second column
-let sub  = mat[0 : 2, 0 : 2]  // [[1,2],[4,5]] — 2×2 submatrix
+let col0 = mat[;, 0]        // [1, 4, 7]  — first column
+let col1 = mat[;, 1]        // [2, 5, 8]  — second column
+let sub  = mat[0; 2, 0; 2]  // [[1,2],[4,5]] — 2×2 submatrix
 
 // Strided multi-dim
-let strd = mat[ : : 2, : : 2] // every other row AND column
+let strd = mat[;;2, ;;2] // every other row AND column
 
 // ============================================================
 // SLICE AS LVALUE (ASSIGNMENT)
 // ============================================================
 
 mut arr2 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-arr2[2 : 5] = [20, 30, 40]    // replace elements at index 2,3,4
-arr2[ : 3]  = [10, 11, 12]    // replace first 3
-arr2[ : :2] = arr2[ : : 2].map(|x| x * 2)  // double every other
+arr2[2; 5] = [20, 30, 40]    // replace elements at index 2,3,4
+arr2[;3]  = [10, 11, 12]    // replace first 3
+arr2[;;2] = arr2[;;2].map(|x| x * 2)  // double every other
 
 // ============================================================
 // SLICE WITH RANGE OPERATORS  (comparison)
 // ============================================================
 
-// Ruko also has range literals; slices use : syntax, not ..
+// Ruko also has range literals; slices use ; syntax, not ..
 let range1 = 0 ..< 10         // range object (for is and contains)
-let range2 = 0 .. 9           // inclusive range
+let range2 = 0 ... 9           // inclusive range
 
-// Slice is distinct — uses [] and :
-let slice1 = arr[0 : 10]      // array slice
+// Slice is distinct — uses [] and ;
+let slice1 = arr[0; 10]      // array slice
 
 \* ============================================================
    29 — PUNCTUATION & BRACKETS
@@ -4419,7 +4420,7 @@ let rec = {name: "Alice", age: 30}
 match n {
   case 0: "zero"
   case 1: "one"
-  else "many"
+  case: "many"
 }
 
 // Binding pattern
@@ -4430,7 +4431,7 @@ let msg = #"Result: #{a + b}"
 
 // Splice form  #{...}
 let obj2 = #{x: 1, y: 2}
-let merged = #{*base, z: 3}
+let merged = #{..base, z: 3}
 
 // Style block
 style Card {
@@ -4485,8 +4486,8 @@ while (running) { tick() }
 let arr3 = [1, 2, 3]
 
 // Array type annotation
-let list: []int = [10, 20, 30]
-let fixed: [5]int = [1, 2, 3, 4, 5]
+let list: [int] = [10, 20, 30]
+let fixed: [int * 5] = [1, 2, 3, 4, 5]
 
 // Subscript / index access
 let first3 = arr3[0]
@@ -4494,7 +4495,7 @@ let last2  = arr3[-1]
 let ch     = str2[3]
 
 // Slice
-let sl = arr3[1:3]
+let sl = arr3[1; 3]
 
 // Array pattern
 let [h, ..t] = arr3
@@ -4526,7 +4527,7 @@ let nested2: Map<str, Vec<int>> = Map.new()
 
 // Type constraints
 func max_of<T: Ord>(T a, T b): T { if a > b: a else b }
-func print_all<T: Display + Clone>([]T xs): void { xs.each(print) }
+func print_all<T: Display + Clone>([T] xs): void { xs.each(print) }
 
 // Comparison operators (not generic angle brackets)
 let lt2 = a < b
