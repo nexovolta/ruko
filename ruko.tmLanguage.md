@@ -1601,6 +1601,19 @@ repository:
           0: {name: constant.numeric.octal.ruko}
           1: {name: storage.type.numeric.octal.ruko}
           <<: *number-captures
+      - comment: duodecimal (0z prefix)
+        match: |-
+          (?xi)\s*\b
+          (0z) [\da-b](?:[\p{Pc}\da-b]*[\da-b])*
+          (?: (\.)   [\da-b](?:[\p{Pc}\da-b]*[\da-b])? |  # decimal point
+              (\/)   [\da-b](?:[\p{Pc}\da-b]*[\da-b])? )? # fractional part
+          (?: (:?e) ([+-]?) [\da-b](?:[\p{Pc}\da-b]*[\da-b])? |  # exponent
+              (:?p) ([+-]?) [\da-b](?:[\p{Pc}\da-b]*[\da-b])? )? # byte shift exponent
+          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
+        captures:
+          0: {name: constant.numeric.duodecimal.ruko}
+          1: {name: storage.type.numeric.duodecimal.ruko}
+          <<: *number-captures
       - comment: duodecimal (0d prefix)
         match: |-
           (?xi)\s*\b

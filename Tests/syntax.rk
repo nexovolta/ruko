@@ -499,8 +499,8 @@ func str toString() { "MyClass" }
 
 \* ============================================================
    06 — NUMERIC LITERALS
-   Every numeric base, exponent form, fraction, byte-shift,
-   and unit suffix.
+   Every numeric base, exponent form, fraction, repeating
+   decimal, rational, and unit suffix.
    ============================================================ *\
 
 // ----- Decimal -----
@@ -508,6 +508,11 @@ let a = 0
 let b = 42
 let c = 1_000_000        // underscores as separators
 let d = 9_007_199_254_740_992
+
+// ----- Prefixed decimal (0d) -----
+let dec1 = 0d0
+let dec2 = 0d42
+let dec3 = 0d1_000_000
 
 // ----- Binary (0b) -----
 let bin1 = 0b0
@@ -549,39 +554,38 @@ let hex4 = 0xFF_FF_FF
 let hex5 = 0x0000_0001
 
 // ----- Arbitrary base (Nb..._) -----
-// Format: <base>b<digits>  where base is 2–64
+// Format: <base>b<digits>  where 2 < base < 64
 let base3  =  3b210        // base 3
 let base5  =  5b43210
 let base16 = 16b0123456789ABCDEF
 let base32 = 32bQRSTUV
-let base64 = 64bABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/
+let base63 = 63b0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzþ
 
 // ----- Floating-point -----
 let f1 = 0.0
 let f2 = 3.14
 let f3 = 1_234.567_89
-let f4 = 0.5              // leading dot
-let f5 = 1.0              // trailing dot
+let f4 = 0.5
+let f5 = 1.0
+
+// ----- Repeating (backslash after a decimal point) -----
+let rep1 = 0.1\3          // 0.1333...
+let rep2 = 1.23\45        // 1.234545...
+let rep3 = 0xF.8\A        // hex repeating
+let rep4 = 16bFF.A\F
 
 // ----- Rational / fractional -----
+// `/` cannot cooccur with `.` or `\`
 let r1 = 1/2             // rational one-half
 let r2 = 3/4
 let r3 = 22/7
 
-// ----- Decimal exponent (e) -----
-let e1 = 1e10
-let e2 = 1.5e-3
-let e3 = 2.0e+8
-let e4 = 0b1.0e10        // binary mantissa, decimal exponent
-let e5 = 0x1p8           // hex mantissa, binary exponent (C-style)
-
-// ----- Byte-shift exponent (:p or :P) -----
-// x :p n  means x * 2^n  (left shift by n bits)
-// prefix colon is optional, but p/P is required to distinguish from e/E
-let p1 = 1p8            // 256
-let p2 = 1.5p4          // 24.0
-let p3 = 0b1p10         // 1024
-let p4 = 0x1P8          // same, upper-case P
+// ----- Exponent (^ with optional + / -) -----
+let e1 = 1^10
+let e2 = 1.5^-3
+let e3 = 2.0^+8
+let e4 = 0b1.0^10        // binary mantissa, binary exponent
+let e5 = 0xFF^10         // hex mantissa and exponent
 
 // ----- Cross-base floating / rational -----
 let xf1 = 0b1010.1010    // binary fraction
@@ -590,25 +594,28 @@ let xf3 = 0xF.8          // hex fraction = 15.5
 let xr1 = 0b101/110      // binary rational
 
 // ----- Unit suffixes -----
-// A unit name (identifier) may follow any number literal.
-let px1   = 200px        // pixels
-let em1   = 1.5em
-let rem1  = 2rem
-let pct1  = 50%          // percent-as-unit (inside expressions)
-let ms1   = 300ms
-let sec1  = 1.5s
-let deg1  = 90deg
-let rad1  = 3.14159rad
-let turn1 = 0.5turn
-let hz1   = 440hz
-let khz1  = 1.0khz
-let kb1   = 4096kb
-let mb1   = 1mb
-let gb1   = 2.5gb
+// A unit name may follow any number literal. The colon is optional:
+// 200:px and 200px are the same.
+let px1   = 200:px       // pixels
+let em1   = 1.5:em
+let rem1  = 2:rem
+let pct1  = 50:%         // percent-as-unit (inside expressions)
+let pct2  = 50%          // colon optional
+let ms1   = 300:ms
+let sec1  = 1.5:s
+let deg1  = 90:deg
+let rad1  = 3.14159:rad
+let turn1 = 0.5:turn
+let hz1   = 440:hz
+let khz1  = 1.0:khz
+let kb1   = 4096:kb
+let mb1   = 1:mb
+let gb1   = 2.5:gb
 
 // Unit suffixes also work on other bases
-let hexPx = 0xFFpx
-let binMs = 0b1010ms
+let hexPx = 0xFF:px
+let binMs = 0b1010:ms
+let glued = 200px        // colon omitted
 
 \* ============================================================
    07 — SYMBOL LITERALS
@@ -1243,7 +1250,7 @@ let num  = \* &#65; *\    // decimal entity → A
 let hex2 = \* &#x41; *\   // hex entity → A
 
 // ----- Inline style on tag -----
-<div style={background: :blue; color: :white; padding: 1rem}/>
+<div style={background: :blue; color: :white; padding: 1:rem}/>
 
 // ----- JSX expression children -----
 <div>
@@ -1361,7 +1368,7 @@ See the reference[^1] and cite[@smith2023].
 
 !(em .emphasized) Styled emphasis !(strong) Strong
 
-!{color: red; font size: 1.2em} Red large text
+!{color: red; font size: 1.2:em} Red large text
 
 *\
 
@@ -1393,17 +1400,17 @@ func sortedPowerSet<T: Ord>([T] xs): [[T]] {
 // ----- RGB / RGBA colors -----
 let c1 = %rgb(255, 128, 0)       // orange
 let c2 = %rgba(255, 128, 0, 0.5) // semi-transparent orange
-let c3 = %rgb(100%, 50%, 0%)       // percentage form
-let c4 = %rgba(100%, 50%, 0%, 0.8)
+let c3 = %rgb(100:%, 50:%, 0:%)       // percentage form
+let c4 = %rgba(100:%, 50:%, 0:%, 0.8)
 
 // ----- CMYK colors -----
 let c5 = %cmyk(0, 50, 100, 0)     // orange in CMYK
 let c6 = %cmyka(0, 50, 100, 0, 1.0)
 
 // ----- HSL / HSV / OKLCH colors -----
-let c7  = %hsl(30, 100%, 50%)     // orange as HSL
-let c8  = %hsla(30, 100%, 50%, 0.5)
-let c9  = %hsv(30, 100%, 100%)
+let c7  = %hsl(30, 100:%, 50:%)     // orange as HSL
+let c8  = %hsla(30, 100:%, 50:%, 0.5)
+let c9  = %hsv(30, 100:%, 100:%)
 let c10 = %hcl(30, 100, 50)       // HCL
 let c11 = %oklch(0.7, 0.18, 30)   // OKLCH
 let c12 = %oklab(0.7, 0.12, 0.05) // OKLAB
@@ -2260,8 +2267,8 @@ let r6 = compute(
 // ----- Named argument call -----
 let r7  = open(path: "data.csv", mode: :read)
 let r8  = connect(host: "localhost", port: 5432, ssl: false)
-let r9  = Box.new(width: 200px, height: 100px, color: %#FF0000)
-let r10 = animate(`from`: 0, to: 100, duration: 300ms, easing: :linear)
+let r9  = Box.new(width: 200:px, height: 100:px, color: %#FF0000)
+let r10 = animate(`from`: 0, to: 100, duration: 300:ms, easing: :linear)
 
 // ----- Generic call -----
 let r11 = identity<int>(42)
@@ -2398,7 +2405,7 @@ g("hello", true, null)
 
 // ----- Named arguments (key: value) -----
 connect(host: "localhost", port: 5432)
-animate(from: 0, to: 100, duration: 300ms)
+animate(from: 0, to: 100, duration: 300:ms)
 Box.new(width: 200, height: 100, depth: 50)
 
 // Mixed positional + named
@@ -4436,7 +4443,7 @@ let merged = #{..base, z: 3}
 // Style block
 style Card {
   background color: :white;
-  border radius: 8px;
+  border radius: 8:px;
 }
 
 // Lambda body (multi-statement)
@@ -4505,7 +4512,7 @@ let val3 = obj[dynamicKey]
 
 // CSS selector list (in style-list context)
 style FocusStyle[input, textarea, button] {
-  outline: 2px:solid:blue;
+  outline: 2:px:solid:blue;
 }
 
 // Splice form #[...]
@@ -4871,12 +4878,12 @@ style AllCSSProperties {
   right: 0;
   bottom: 0;
   left: 0;
-  width: 100%;
+  width: 100:%;
   height: auto;
-  min width: 200px;
-  max width: 1200px;
-  min height: 100px;
-  max height: 800px;
+  min width: 200:px;
+  max width: 1200:px;
+  min height: 100:px;
+  max height: 800:px;
   overflow: :hidden;
   overflow x: :scroll;
   overflow y: :auto;
@@ -4905,9 +4912,9 @@ style AllCSSProperties {
   align self: :flex-start;
   align content: :space-between;
   order: 2;
-  gap: 1rem;
-  row-gap: 0.5rem;
-  column gap: 1rem;
+  gap: 1:rem;
+  row-gap: 0.5:rem;
+  column gap: 1:rem;
 
   // --- Grid ---
   grid: :none;
@@ -4924,42 +4931,42 @@ style AllCSSProperties {
   grid area: :main;
   grid auto flow: :row;
   grid auto columns: :auto;
-  grid auto rows: 100px;
+  grid auto rows: 100:px;
   place items: :center;
   place content: :center;
   place self: :start;
 
   // --- Box model ---
   margin: :auto;
-  margin top: 1rem;
+  margin top: 1:rem;
   margin right: 0;
-  margin bottom: 1rem;
+  margin bottom: 1:rem;
   margin left: 0;
-  padding: 1rem;
-  padding top: 0.5rem;
-  padding right: 1rem;
-  padding bottom: 0.5rem;
-  padding left: 1rem;
+  padding: 1:rem;
+  padding top: 0.5:rem;
+  padding right: 1:rem;
+  padding bottom: 0.5:rem;
+  padding left: 1:rem;
   border: "1px solid #ccc";
-  border width: 1px;
+  border width: 1:px;
   border style: :solid;
   border color: :transparent;
   border top: :none;
   border right: :none;
   border bottom: "2px dashed red";
   border left: :none;
-  border radius: 8px;
-  border top left radius: 4px;
-  border top right radius: 4px;
-  border bottom left radius: 4px;
-  border bottom right radius: 4px;
+  border radius: 8:px;
+  border top left radius: 4:px;
+  border top right radius: 4:px;
+  border bottom left radius: 4:px;
+  border bottom right radius: 4:px;
   border collapse: :collapse;
   border spacing: 0;
   outline: :none;
-  outline width: 2px;
+  outline width: 2:px;
   outline style: :dashed;
   outline color: :blue;
-  outline offset: 2px;
+  outline offset: 2:px;
 
   // --- Background ---
   background: :transparent;
@@ -4977,7 +4984,7 @@ style AllCSSProperties {
   color: :inherit;
   font: :inherit;
   font family: "\"Inter\", sans-serif";
-  font size: 1rem;
+  font size: 1:rem;
   font weight: :bold;
   font style: :italic;
   font variant: :small-caps;
@@ -4987,7 +4994,7 @@ style AllCSSProperties {
   font feature settings: :normal;
   font optical sizing: :auto;
   line height: 1.5;
-  letter spacing: 0.05em;
+  letter spacing: 0.05:em;
   word spacing: normal;
   text align: :center;
   text align last: :justify;
@@ -4995,15 +5002,15 @@ style AllCSSProperties {
   text decoration color: :currentColor;
   text decoration style: :wavy;
   text decoration line: "underline overline";
-  text decoration thickness: 2px;
+  text decoration thickness: 2:px;
   text transform: :uppercase;
-  text indent: 2em;
+  text indent: 2:em;
   text overflow: :ellipsis;
   text shadow: "2px 2px 4px rgba(0,0,0,0.5)";
   text rendering: :optimizeLegibility;
   text combine upright: :none;
   text emphasis: "dot open blue";
-  text underline offset: 2px;
+  text underline offset: 2:px;
   white space: :nowrap;
   word break: :break-word;
   word wrap: :break-word;
@@ -5040,41 +5047,41 @@ style AllCSSProperties {
   transform: "rotate(45deg)";
   transform origin: :center;
   transform-style: :preserve-3d;
-  perspective: 1000px;
+  perspective: 1000:px;
   perspective origin: :center;
   will-change: :transform;
   transition: "all 0.3s ease";
   transition property: :opacity;
-  transition duration: 300ms;
+  transition duration: 300:ms;
   transition timing function: :ease-in-out;
-  transition delay: 100ms;
+  transition delay: 100:ms;
   animation: "fadeIn 1s ease forwards";
   animation name: :bounce;
-  animation duration: 0.5s;
+  animation duration: 0.5:s;
   animation timing function: :cubic-bezier;
   animation iteration count: :infinite;
   animation direction: :alternate;
   animation fill mode: :both;
   animation play state: :paused;
-  animation delay: 200ms;
+  animation delay: 200:ms;
 
   // --- Scrolling ---
   scroll behavior: :smooth;
-  scroll margin: 1rem;
-  scroll padding: 1rem;
+  scroll margin: 1:rem;
+  scroll padding: 1:rem;
   scroll snap type: "x mandatory";
   scroll snap align: :start;
   overscroll behavior: :contain;
 
   // --- Other ---
   shape-outside: "circle(50%)";
-  shape-margin: 10px;
+  shape-margin: 10:px;
   filter: "blur(4px)";
   backdrop-filter: "blur(8px)";
   columns: "3 200px";
   column count: 3;
-  column width: 200px;
-  column gap: 1.5rem;
+  column width: 200:px;
+  column gap: 1.5:rem;
   column rule: "1px solid #ccc";
   column span: :all;
   `break inside`: :avoid;

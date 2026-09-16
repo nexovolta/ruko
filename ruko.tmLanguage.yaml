@@ -467,29 +467,26 @@ repository:
                   | :?[@#%]*"(?>\\.|[^\\"])*"|:?[@#$%]*"(?>""|[^"])*" # double quoted string literals
                   | \b (?i: # number literals
                       (?:
-                        \d*b \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? # arbitrary base (Nb...)
-                        (?: \. \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # decimal point
-                            /  \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? )? # fractional part
-                        (?: :?e [+-]? \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # base exponent
-                            :?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+                        (?:[3-9]|[1-5]\d|6[0-3])b [\da-zA-ZþÞ](?:_?[\da-zA-ZþÞ])* # arbitrary base (Nb..., 2 < n < 64)
+                        (?: \. [\da-zA-ZþÞ](?:_?[\da-zA-ZþÞ])* (?: \\ [\da-zA-ZþÞ](?:_?[\da-zA-ZþÞ])* )? | # float + optional repeating
+                            /  [\da-zA-ZþÞ](?:_?[\da-zA-ZþÞ])* )? # rational (not with . or \)
+                        (?: \^ [+-]? [\da-zA-ZþÞ](?:_?[\da-zA-ZþÞ])* )? # exponent
                       ) |
                       (?:
-                        0[btqsozx] \h(?:[\p{Pc}\h]*\h)? # binary, ternary, quaternary, senary, octal, duodecimal or hexadecimal
-                        (?: \. \h(?:[\p{Pc}\h]*\h)? | # decimal point
-                            /  \h(?:[\p{Pc}\h]*\h)? )? # fractional part
-                        (?: :?e [+-]? \h(?:[\p{Pc}\h]*\h)? | # exponent
-                            :?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+                        0[btqsodzx] \h(?:_?\h)* # binary, ternary, quaternary, senary, octal, decimal, duodecimal or hexadecimal
+                        (?: \. \h(?:_?\h)* (?: \\ \h(?:_?\h)* )? | # float + optional repeating
+                            /  \h(?:_?\h)* )? # rational (not with . or \)
+                        (?: \^ [+-]? \h(?:_?\h)* )? # exponent
                       ) |
                       (?:
-                        \d(?:[\p{Pc}\d]*\d)? # decimal
-                        (?: \. \d(?:[\p{Pc}\d]*\d)? | # decimal point
-                            /  \d(?:[\p{Pc}\d]*\d)? )? # fractional part
-                        (?: :?e [+-]? \d(?:[\p{Pc}\d]*\d)? | # decimal exponent
-                            :?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+                        (?:0|[1-9](?:_?\d)*) # decimal
+                        (?: \. \d(?:_?\d)* (?: \\ \d(?:_?\d)* )? | # float + optional repeating
+                            /  \d(?:_?\d)* )? # rational (not with . or \)
+                        (?: \^ [+-]? \d(?:_?\d)* )? # exponent
                       )
                    )
                 )
-                (?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b)? # unit suffix
+                (?::?(?>`(?>``|[^`])+`|%|[\p{L}\p{Nl}\p{Pc}]\w*\b))? # optional : unit suffix
 
               | (?:
                   (?:
@@ -570,29 +567,26 @@ repository:
                   | :?[@#%]*"(?>\\.|[^\\"])*"|:?[@#$%]*"(?>""|[^"])*" # double quoted string literals
                   | \b (?i: # number literals
                       (?:
-                        \d*b \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? # arbitrary base (Nb...)
-                        (?: \. \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # decimal point
-                            /  \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? )? # fractional part
-                        (?: :?e [+-]? \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # base exponent
-                            :?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+                        (?:[3-9]|[1-5]\d|6[0-3])b [\da-zA-ZþÞ](?:_?[\da-zA-ZþÞ])* # arbitrary base (Nb..., 2 < n < 64)
+                        (?: \. [\da-zA-ZþÞ](?:_?[\da-zA-ZþÞ])* (?: \\ [\da-zA-ZþÞ](?:_?[\da-zA-ZþÞ])* )? | # float + optional repeating
+                            /  [\da-zA-ZþÞ](?:_?[\da-zA-ZþÞ])* )? # rational (not with . or \)
+                        (?: \^ [+-]? [\da-zA-ZþÞ](?:_?[\da-zA-ZþÞ])* )? # exponent
                       ) |
                       (?:
-                        0[btqsozx] \h(?:[\p{Pc}\h]*\h)? # binary, ternary, quaternary, senary, octal, duodecimal or hexadecimal
-                        (?: \. \h(?:[\p{Pc}\h]*\h)? | # decimal point
-                            /  \h(?:[\p{Pc}\h]*\h)? )? # fractional part
-                        (?: :?e [+-]? \h(?:[\p{Pc}\h]*\h)? | # exponent
-                            :?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+                        0[btqsodzx] \h(?:_?\h)* # binary, ternary, quaternary, senary, octal, decimal, duodecimal or hexadecimal
+                        (?: \. \h(?:_?\h)* (?: \\ \h(?:_?\h)* )? | # float + optional repeating
+                            /  \h(?:_?\h)* )? # rational (not with . or \)
+                        (?: \^ [+-]? \h(?:_?\h)* )? # exponent
                       ) |
                       (?:
-                        \d(?:[\p{Pc}\d]*\d)? # decimal
-                        (?: \. \d(?:[\p{Pc}\d]*\d)? | # decimal point
-                            /  \d(?:[\p{Pc}\d]*\d)? )? # fractional part
-                        (?: :?e [+-]? \d(?:[\p{Pc}\d]*\d)? | # decimal exponent
-                            :?p [+-]? \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
+                        (?:0|[1-9](?:_?\d)*) # decimal
+                        (?: \. \d(?:_?\d)* (?: \\ \d(?:_?\d)* )? | # float + optional repeating
+                            /  \d(?:_?\d)* )? # rational (not with . or \)
+                        (?: \^ [+-]? \d(?:_?\d)* )? # exponent
                       )
                    )
                 )
-                (?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b)? # unit suffix
+                (?::?(?>`(?>``|[^`])+`|%|[\p{L}\p{Nl}\p{Pc}]\w*\b))? # optional : unit suffix
 
               | (?:
                   (?:
@@ -1516,128 +1510,214 @@ repository:
 
   numbers:
     patterns:
-      - comment: arbitrary base numbers (\d+b prefix)
+      - comment: arbitrary base numbers (Nb prefix, 2 < n < 64); digits 0-9 a-z A-Z þÞ
+        name: constant.numeric.arbitrary-base.ruko
         match: |-
-          (?xi)\s*\b
-          ([1-9]\d*b) \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? # arbitrary base (Nb...)
-          (?: (\.)    \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? |  # decimal point
-              (\/)    \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? )? # fractional part
-          (?: (:?e) ([+-]?) \p{alnum}(?:[\p{Pc}\p{alnum}]*\p{alnum})? | # base exponent
-              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
+          (?xi)\b
+          ((?:[3-9]|[1-5]\d|6[0-3])b) ([\da-zA-ZþÞ](?:_?[\da-zA-ZþÞ])*)
+          (?: (\.) ([\da-zA-ZþÞ](?:_?[\da-zA-ZþÞ])*) (?: (\\) ([\da-zA-ZþÞ](?:_?[\da-zA-ZþÞ])*) )? |
+              (/)  ([\da-zA-ZþÞ](?:_?[\da-zA-ZþÞ])*) )?
+          (?: (\^) ([+-]?) ([\da-zA-ZþÞ](?:_?[\da-zA-ZþÞ])*) )?
+          (?: (:)? ((?>`(?>``|[^`])+`|%|[\p{L}\p{Nl}\p{Pc}]\w*\b)) )?
         captures: &number-captures
           0: {name: constant.numeric.arbitrary-base.ruko}
           1: {name: storage.type.numeric.ruko}
-          2: {name: punctuation.separator.decimal.ruko}
-          3: {name: punctuation.separator.rational.ruko}
-          4: {name: keyword.operator.expression.exponent.ruko}
-          5: {name: keyword.operator.sign.exponent.ruko}
-          6: {name: keyword.operator.expression.byte-shift.ruko}
-          7: {name: keyword.operator.sign.byte-shift.ruko}
-          8: {name: keyword.other.unit.ruko}
+          2: &arbitrary-digits
+            name: constant.numeric.arbitrary-base.ruko
+            patterns: &number-digit-inner
+              - match: _
+                name: punctuation.separator.numeric.ruko
+          3: {name: punctuation.separator.decimal.ruko}
+          4: *arbitrary-digits
+          5: {name: punctuation.separator.repeating.ruko}
+          6: *arbitrary-digits
+          7: {name: punctuation.separator.rational.ruko}
+          8: *arbitrary-digits
+          9: {name: keyword.operator.expression.exponent.ruko}
+          10: {name: keyword.operator.sign.exponent.ruko}
+          11: *arbitrary-digits
+          12: {name: punctuation.separator.unit.ruko}
+          13: {name: keyword.other.unit.ruko}
       - comment: binary (0b prefix)
+        name: constant.numeric.binary.ruko
         match: |-
-          (?xi)\s*\b
-          (0b) [01](?:[\p{Pc}01]*[01])*
-          (?: (\.)   [01](?:[\p{Pc}01]*[01])* |  # decimal point
-              (\/)   [01](?:[\p{Pc}01]*[01])* )? # fractional part
-          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
-              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
+          (?xi)\b
+          (0b) ([01](?:_?[01])*)
+          (?: (\.) ([01](?:_?[01])*) (?: (\\) ([01](?:_?[01])*) )? |
+              (/)  ([01](?:_?[01])*) )?
+          (?: (\^) ([+-]?) ([01](?:_?[01])*) )?
+          (?: (:)? ((?>`(?>``|[^`])+`|%|[\p{L}\p{Nl}\p{Pc}]\w*\b)) )?
         captures:
           0: {name: constant.numeric.binary.ruko}
           1: {name: storage.type.numeric.binary.ruko}
+          2: &binary-digits
+            name: constant.numeric.binary.ruko
+            patterns: *number-digit-inner
+          4: *binary-digits
+          6: *binary-digits
+          8: *binary-digits
+          11: *binary-digits
           <<: *number-captures
       - comment: ternary (0t prefix)
+        name: constant.numeric.ternary.ruko
         match: |-
-          (?xi)\s*\b
-          (0t) [0-2](?:[\p{Pc}0-2])*
-          (?: (\.)   [0-2](?:[\p{Pc}0-2]*[0-2])? |  # decimal point
-              (\/)   [0-2](?:[\p{Pc}0-2]*[0-2])? )? # fractional part
-          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
-              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
+          (?xi)\b
+          (0t) ([0-2](?:_?[0-2])*)
+          (?: (\.) ([0-2](?:_?[0-2])*) (?: (\\) ([0-2](?:_?[0-2])*) )? |
+              (/)  ([0-2](?:_?[0-2])*) )?
+          (?: (\^) ([+-]?) ([0-2](?:_?[0-2])*) )?
+          (?: (:)? ((?>`(?>``|[^`])+`|%|[\p{L}\p{Nl}\p{Pc}]\w*\b)) )?
         captures:
           0: {name: constant.numeric.ternary.ruko}
           1: {name: storage.type.numeric.ternary.ruko}
+          2: &ternary-digits
+            name: constant.numeric.ternary.ruko
+            patterns: *number-digit-inner
+          4: *ternary-digits
+          6: *ternary-digits
+          8: *ternary-digits
+          11: *ternary-digits
           <<: *number-captures
-      - comment: quarternary (0q prefix)
+      - comment: quaternary (0q prefix)
+        name: constant.numeric.quarternary.ruko
         match: |-
-          (?xi)\s*\b
-          (0q) [0-3](?:[\p{Pc}0-3])*
-          (?: (\.)   [0-3](?:[\p{Pc}0-3]*[0-3])? |  # decimal point
-              (\/)   [0-3](?:[\p{Pc}0-3]*[0-3])? )? # fractional part
-          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
-              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
+          (?xi)\b
+          (0q) ([0-3](?:_?[0-3])*)
+          (?: (\.) ([0-3](?:_?[0-3])*) (?: (\\) ([0-3](?:_?[0-3])*) )? |
+              (/)  ([0-3](?:_?[0-3])*) )?
+          (?: (\^) ([+-]?) ([0-3](?:_?[0-3])*) )?
+          (?: (:)? ((?>`(?>``|[^`])+`|%|[\p{L}\p{Nl}\p{Pc}]\w*\b)) )?
         captures:
           0: {name: constant.numeric.quarternary.ruko}
           1: {name: storage.type.numeric.quarternary.ruko}
+          2: &quaternary-digits
+            name: constant.numeric.quarternary.ruko
+            patterns: *number-digit-inner
+          4: *quaternary-digits
+          6: *quaternary-digits
+          8: *quaternary-digits
+          11: *quaternary-digits
           <<: *number-captures
       - comment: senary (0s prefix)
+        name: constant.numeric.senary.ruko
         match: |-
-          (?xi)\s*\b
-          (0s) [0-5](?:[\p{Pc}0-5])*
-          (?: (\.)   [0-5](?:[\p{Pc}0-5]*[0-5])? |  # decimal point
-              (\/)   [0-5](?:[\p{Pc}0-5]*[0-5])? )? # fractional part
-          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
-              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
+          (?xi)\b
+          (0s) ([0-5](?:_?[0-5])*)
+          (?: (\.) ([0-5](?:_?[0-5])*) (?: (\\) ([0-5](?:_?[0-5])*) )? |
+              (/)  ([0-5](?:_?[0-5])*) )?
+          (?: (\^) ([+-]?) ([0-5](?:_?[0-5])*) )?
+          (?: (:)? ((?>`(?>``|[^`])+`|%|[\p{L}\p{Nl}\p{Pc}]\w*\b)) )?
         captures:
           0: {name: constant.numeric.senary.ruko}
           1: {name: storage.type.numeric.senary.ruko}
+          2: &senary-digits
+            name: constant.numeric.senary.ruko
+            patterns: *number-digit-inner
+          4: *senary-digits
+          6: *senary-digits
+          8: *senary-digits
+          11: *senary-digits
           <<: *number-captures
       - comment: octal (0o prefix)
+        name: constant.numeric.octal.ruko
         match: |-
-          (?xi)\s*\b
-          (0o) [0-7](?:[\p{Pc}0-7])*
-          (?: (\.)   [0-7](?:[\p{Pc}0-7]*[0-7])? |  # decimal point
-              (\/)   [0-7](?:[\p{Pc}0-7]*[0-7])? )? # fractional part
-          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
-              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
+          (?xi)\b
+          (0o) ([0-7](?:_?[0-7])*)
+          (?: (\.) ([0-7](?:_?[0-7])*) (?: (\\) ([0-7](?:_?[0-7])*) )? |
+              (/)  ([0-7](?:_?[0-7])*) )?
+          (?: (\^) ([+-]?) ([0-7](?:_?[0-7])*) )?
+          (?: (:)? ((?>`(?>``|[^`])+`|%|[\p{L}\p{Nl}\p{Pc}]\w*\b)) )?
         captures:
           0: {name: constant.numeric.octal.ruko}
           1: {name: storage.type.numeric.octal.ruko}
+          2: &octal-digits
+            name: constant.numeric.octal.ruko
+            patterns: *number-digit-inner
+          4: *octal-digits
+          6: *octal-digits
+          8: *octal-digits
+          11: *octal-digits
           <<: *number-captures
-      - comment: duodecimal (0d prefix)
+      - comment: prefixed decimal (0d prefix)
+        name: constant.numeric.decimal.ruko
         match: |-
-          (?xi)\s*\b
-          (0d) \d(?:_?\d)*
-          (?: (\.)   \d(?:[\p{Pc}\d]*\d)? |  # decimal point
-              (\/)   \d(?:[\p{Pc}\d]*\d)? )? # fractional part
-          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
-              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
+          (?xi)\b
+          (0d) (\d(?:_?\d)*)
+          (?: (\.) (\d(?:_?\d)*) (?: (\\) (\d(?:_?\d)*) )? |
+              (/)  (\d(?:_?\d)*) )?
+          (?: (\^) ([+-]?) (\d(?:_?\d)*) )?
+          (?: (:)? ((?>`(?>``|[^`])+`|%|[\p{L}\p{Nl}\p{Pc}]\w*\b)) )?
         captures:
           0: {name: constant.numeric.decimal.ruko}
           1: {name: storage.type.numeric.decimal.ruko}
+          2: &prefixed-decimal-digits
+            name: constant.numeric.decimal.ruko
+            patterns: *number-digit-inner
+          4: *prefixed-decimal-digits
+          6: *prefixed-decimal-digits
+          8: *prefixed-decimal-digits
+          11: *prefixed-decimal-digits
+          <<: *number-captures
+      - comment: duodecimal (0z prefix)
+        name: constant.numeric.duodecimal.ruko
+        match: |-
+          (?xi)\b
+          (0z) ([\da-b](?:_?[\da-b])*)
+          (?: (\.) ([\da-b](?:_?[\da-b])*) (?: (\\) ([\da-b](?:_?[\da-b])*) )? |
+              (/)  ([\da-b](?:_?[\da-b])*) )?
+          (?: (\^) ([+-]?) ([\da-b](?:_?[\da-b])*) )?
+          (?: (:)? ((?>`(?>``|[^`])+`|%|[\p{L}\p{Nl}\p{Pc}]\w*\b)) )?
+        captures:
+          0: {name: constant.numeric.duodecimal.ruko}
+          1: {name: storage.type.numeric.duodecimal.ruko}
+          2: &duodecimal-digits
+            name: constant.numeric.duodecimal.ruko
+            patterns: *number-digit-inner
+          4: *duodecimal-digits
+          6: *duodecimal-digits
+          8: *duodecimal-digits
+          11: *duodecimal-digits
           <<: *number-captures
       - comment: hexadecimal (0x prefix)
+        name: constant.numeric.hexadecimal.ruko
         match: |-
-          (?xi)\s*\b
-          (0x) \h(?:[\p{Pc}0-9a-f])*
-          (?: (\.)   \h(?:[\p{Pc}\h])? |  # decimal point
-              (\/)   \h(?:[\p{Pc}\h])? )? # fractional part
-          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
-              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
+          (?xi)\b
+          (0x) (\h(?:_?\h)*)
+          (?: (\.) (\h(?:_?\h)*) (?: (\\) (\h(?:_?\h)*) )? |
+              (/)  (\h(?:_?\h)*) )?
+          (?: (\^) ([+-]?) (\h(?:_?\h)*) )?
+          (?: (:)? ((?>`(?>``|[^`])+`|%|[\p{L}\p{Nl}\p{Pc}]\w*\b)) )?
         captures:
           0: {name: constant.numeric.hexadecimal.ruko}
           1: {name: storage.type.numeric.hexadecimal.ruko}
+          2: &hexadecimal-digits
+            name: constant.numeric.hexadecimal.ruko
+            patterns: *number-digit-inner
+          4: *hexadecimal-digits
+          6: *hexadecimal-digits
+          8: *hexadecimal-digits
+          11: *hexadecimal-digits
           <<: *number-captures
       - comment: decimal (no prefix)
+        name: constant.numeric.decimal.ruko
         match: |-
-          (?xi)\s*\b
-          (0|[1-9](?:_?\d)*)
-          (?: (\.)    \d(?:[\p{Pc}\d]*\d)? |  # decimal point
-              (\/)    \d(?:[\p{Pc}\d]*\d)? )? # fractional part
-          (?: (:?e) ([+-]?) \d(?:[\p{Pc}\d]*\d)? |  # exponent
-              (:?p) ([+-]?) \d(?:[\p{Pc}\d]*\d)? )? # byte shift exponent
-          ((?>`(?>``|[^`])+`|[\p{L}\p{Nl}\p{Pc}]\w*\b))?\s* # unit suffix
+          (?xi)\b
+          (?!0[btqsodzx])(?!(?:[3-9]|[1-5]\d|6[0-3])b)
+          () (0|[1-9](?:_?\d)*)
+          (?: (\.) (\d(?:_?\d)*) (?: (\\) (\d(?:_?\d)*) )? |
+              (/)  (\d(?:_?\d)*) )?
+          (?: (\^) ([+-]?) (\d(?:_?\d)*) )?
+          (?: (:)? ((?>`(?>``|[^`])+`|%|[\p{L}\p{Nl}\p{Pc}]\w*\b)) )?
         captures:
           0: {name: constant.numeric.decimal.ruko}
-          1: {name: constant.numeric.decimal.ruko}
+          1: {}
+          2: &decimal-digits
+            name: constant.numeric.decimal.ruko
+            patterns: *number-digit-inner
+          4: *decimal-digits
+          6: *decimal-digits
+          8: *decimal-digits
+          11: *decimal-digits
           <<: *number-captures
 
   # Symbols

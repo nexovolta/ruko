@@ -41,7 +41,7 @@ let &mut int z = &mut a;
 (int | 'hello world') b = "hello world";
 let [int] result = [];
 pub func int x(mut const int x) =
-  arr.reduce 0 (int|int sum, int value| sum + value);
+  arr.reduce 0 (int |int sum, int value| sum + value);
 let x<x<x>, x<x>> x = 1;
 let x<x<x<x>, x<x>>> x = 1;
 let x<x :> str> x<x :> int> x = 1;
@@ -62,22 +62,22 @@ X<(|x| func<X>)> identity = |x: x|: X = x;
 [(((((((((((((((((((int | str)))))))))))))))))))] c = [1, "two", 3, "four"];
 for int i = 0, i < 10, i++:
   print("Hello, Ruko World! Iteration: " + i);
-let int x = 0x31091 + 0b101010 + 0o755 + 0z2309 + 123_456_789;
+let int x = 0x31091 + 0s101324 + 0b101010 + 0o755 + 0z0230 + 123_456_789;
 
 // style DSL example
 style `style` {
-  width: 200px;
+  width: 200:px;
   draw: %draw(M 100 100 L 300 100 L 200 300 Z);
   background color: %322;
   text color: %rgb(255, 255, 255);
   fill: %url"https://example.com/resource.txt";
   content: %quote(\(({Hello, World!})\));
   font family: ['Courier New', :monospace];
-  margin: 20px;
-  padding: 10px;
-  border: 2px :solid %#ff5733;
-  font size: 14px;
-  animation: blink(1s, :infinite, :easeInOut, :alternate);
+  margin: 20:px;
+  padding: 10:px;
+  border: 2:px :solid %#ff5733;
+  font size: 14:px;
+  animation: blink(1:s, :infinite, :easeInOut, :alternate);
   timestamp: %time'2024-06-01T12:00:00Z';
 }
 
@@ -94,8 +94,8 @@ func [[int]] sortedPowerSet([int] arr) {
   }
 
   return result.=sort([[int]]|int a, int b| {
-    let int countA = a.reduce 0, int|int c,, int i| c + 1;
-    let int countB = b.reduce 0, int|int d,, int i| d + 1;
+    let int countA = a.reduce 0, int |int c,, int i| c + 1;
+    let int countB = b.reduce 0, int |int d,, int i| d + 1;
     if countA != countB:
       countA - countB;
     for let int i in 0 ..< min a::len b::len:
@@ -106,11 +106,11 @@ func [[int]] sortedPowerSet([int] arr) {
 }
 
 // infix functional style
-func sortedPowerSet = [[int]]|[int] arr| 0 ..< 1 << arr::len
-  \sort\ [int]|int a, int b| (-) ([a, b]
-  \map\ [int]|int k| (arr \reduce\ 0, int|int c,, int i| c + ((k >> i) & 1))
-    ) || arr \reduce\ 0, int|int d,, int i| d || ((b >> i) & 1) - ((a >> i) & 1)
-  \map\ [int]|int e| (arr \filter\ int|, int i| (e >> i) & 1);
+func sortedPowerSet = [[int]] |[int] arr| 0 ..< 1 << arr::len
+  \sort\ [[int]] |int a, int b| (-) ([a, b]
+  \map\ [int] |int k| (arr \reduce\ 0, int |int c,, int i| c + ((k >> i) & 1))
+    ) || arr \reduce\ 0, int |int d,, int i| d || ((b >> i) & 1) - ((a >> i) & 1)
+  \map\ [int] |int e| (arr \filter\ int |, int i| (e >> i) & 1);
 
 // LINQ style
 func [[int]] sortedPowerSet([int] arr) =
@@ -141,9 +141,9 @@ func [[int]] sortedPowerSet([int] arr) =
         subset = push subset arr[j];
     result = push result subset;
 
-  return sort result ([[int]]|int a, int b| =
-    let int countA = reduce a 0, int|int c,, int i| c + 1;
-    let int countB = reduce b 0, int|int d,, int i| d + 1;
+  return sort result ([[int]] |int a, int b| =
+    let int countA = reduce a 0, int |int c,, int i| c + 1;
+    let int countB = reduce b 0, int |int d,, int i| d + 1;
     if countA != countB:
       countA - countB;
     for let int i in 0 ..< min a::len b::len:
@@ -162,9 +162,9 @@ func [[int]] sortedPowerSet([int] arr) {
     [result =push: subset];
   }]
 
-  return [result =sort: [[int]]|int a, int b| {
-    let int countA = [a reduce: 0, int|int c,, int i| c + 1];
-    let int countB = [b reduce: 0, int|int d,, int i| d + 1];
+  return [result =sort: [[int]] |int a, int b| {
+    let int countA = [a reduce: 0, int |int c,, int i| c + 1];
+    let int countB = [b reduce: 0, int |int d,, int i| d + 1];
     if countA != countB: return countA - countB;
     for let int i in 0 ..< min(a::len, b::len):
       if a[i] != b[i]:
@@ -185,9 +185,9 @@ func [[int]] sortedPowerSet([int] arr) {
     result = (push result subset);
   }
 
-  return (sort result ([[int]]|int a, int b| {
-    let int countA = (reduce a 0 (int|int c,, int i| (+ c 1)));
-    let int countB = (reduce b 0 (int|int d,, int i| (+ d 1)));
+  return (sort result ([[int]] |int a, int b| {
+    let int countA = (reduce a 0 (int |int c,, int i| (+ c 1)));
+    let int countB = (reduce b 0 (int |int d,, int i| (+ d 1)));
     if (!= countA countB):
       (- countA countB);
     for let int i in (..< 0 (min a::len b::len)):
@@ -209,9 +209,9 @@ func [[int]] sortedPowerSet([int] arr) {
     </for>
     result.=push subset;
   </for>
-  <return (result.=sort([[int]]|int a, int b| <>
-    <let(type int) (countA)=(a.reduce 0, int|int c,, int i| c + 1)/>
-    <let(type int) (countB)=(b.reduce 0, int|int d,, int i| d + 1)/>
+  <return (result.=sort([[int]] |int a, int b| <>
+    <let(type int) (countA)=(a.reduce 0, int |int c,, int i| c + 1)/>
+    <let(type int) (countB)=(b.reduce 0, int |int d,, int i| d + 1)/>
     <if (countA != countB)>
       <return (countA - countB)/>
     </if>
@@ -245,19 +245,19 @@ shader MazeGenerator {
   mut<group 0, id 1> [u32] walls;
   mut<group 0, id 2> WallsArray wallsArray;
 
-  func i32 getCellIndex(Vec2<i32> cellCoords) {
+  func i32 getCellIndex([i32 * 2] cellCoords) {
     let i32 size = uniforms.mazeSize;
     cellCoords->y * size + cellCoords->x;
   }
 
-  func f32 coinFlip(Vec2<f32> p) {
-    mut Vec3<f32> p3 = fract $ Vec3 p->xyx * 0.1031;
+  func f32 coinFlip([f32 * 2] p) {
+    mut [f32 * 3] p3 = fract $ [f32 * 3] p->xyx * 0.1031;
     p3 += dot p3 (p3->yzx + 33.33);
     step 0.5 (fract (p3->x + p3->y) * p3->z);
   }
 
   // Carve walls for a given cell at random
-  proc randomCarveCellWalls(Vec2<i32> cellCoords) {
+  proc randomCarveCellWalls([i32 * 2] cellCoords) {
     let i32 cellIndex = getCellIndex cellCoords;
 
     let i32 size = uniforms.mazeSize;
@@ -268,11 +268,11 @@ shader MazeGenerator {
     const i32 bWallType = 0; // bottom
     const i32 lWallType = 1; // left
 
-    // isOnEdge -> Vec2 isMostLeftEdge isMostBottomEdge
-    mut Vec2<bool> isOnEdge = cellCoords == Vec2 0;
+    // isOnEdge = Vec2 isMostLeftEdge isMostBottomEdge
+    mut [bool * 2] isOnEdge = cellCoords == Vec2 0;
 
     // main body: bottom and left edges
-    let f32 bottomNotLeft = coinFlip $ Vec2<f32> cellCoords;
+    let f32 bottomNotLeft = coinFlip $ [f32 * 2] cellCoords;
     let i32 bWallIndex = cellIndex * 2 + bWallType;
     let i32 lWallIndex = cellIndex * 2 + lWallType;
     let f32 carveBottom = mix bottomNotLeft 1.0 (f32 isOnEdge->x);
@@ -281,10 +281,82 @@ shader MazeGenerator {
     wallsArray.values[lWallIndex] = u32 $ 1.0 - bottomNotLeft;
   }
 
-  compute proc<thread 8 8> main(Vec3<u32> @id) {
-    randomCarveCellWalls $ Vec2<i32> @id->xy;
+  compute proc thread<8, 8> main([i32 * 2] @id) {
+    randomCarveCellWalls $ [i32 * 2] @id->xy;
   }
 }
+
+shader CelShader {
+  struct Uniforms {
+    prop [4][4]f32 modelViewProjection;
+    prop [4][4]f32 model;
+    prop f32 lightIntensity;
+    prop f32 shadowThreshold;
+    prop f32 shadowSoftness;
+  };
+
+  mut<group 0, id 0> Uniforms uniforms;
+
+  func f32 celStep(f32 light) {
+    let f32 threshold = uniforms.shadowThreshold;
+    let f32 softness = uniforms.shadowSoftness;
+    smoothStep (threshold - softness) (threshold + softness) light;
+  }
+
+  func [3]f32 celDiffuse(
+    [3]f32 normal,
+    [3]f32 lightDir
+  ) {
+    let f32 ndotl = max (dot normal lightDir) 0.0;
+    let f32 intensity = ndotl * uniforms.lightIntensity;
+    let f32 band = celStep intensity;
+    mix (([3]f32) 0.15) (([3]f32) 1.0) band
+  }
+
+  func [3]f32 rimLight(
+    [3]f32 normal,
+    [3]f32 viewDir,
+  ) {
+    let f32 rim = 1.0 - max (dot normal viewDir) 0.0;
+    let f32 intensity = smoothStep 0.55 0.85 rim;
+    ([3]f32) intensity * 0.35;
+  }
+
+  func [4]f32 outline(
+    [3]f32 position,
+    [3]f32 normal,
+  ) {
+    let [3]f32 expanded = position + normal * 0.025;
+    uniforms.modelViewProjection * ([4]f32) expanded 1.0;
+  }
+
+  vert proc vertexMain(
+    [3]f32 position,
+    [3]f32 normal,
+  ) {
+    let [4]f32 worldPosition =
+      uniforms.model * ([4]f32) position 1.0;
+    let [3]f32 worldNormal =
+      normalize $ (uniforms.model * ([4]f32) normal 0.0)->xyz;
+    ({
+      position: uniforms.modelViewProjection * worldPosition,
+      normal: worldNormal
+    });
+  }
+
+  frag proc fragmentMain(
+    [3]f32 normal,
+    [3]f32 viewDir,
+    [3]f32 lightDir,
+  ) {
+    let [3]f32 base = [0.72, 0.35, 0.18]: [3]f32;
+    let [3]f32 diffuse = celDiffuse normal lightDir;
+    let [3]f32 rim = rimLight normal viewDir;
+    let [3]f32 color = base * diffuse + rim;
+    ([4]f32) color 1.0;
+  }
+}
+
 
 // regex examples
 /[\d\D]/;
@@ -307,9 +379,9 @@ print randomString;
 
 // function call with different argument types
 funcName(arg1: 10, &a arg2: 2, stat MyType{k: v} arg3: "hello");
-let v = #{a: pub int|*a| a + 1};
+let v = #{a: pub int |*a| a + 1};
 oper int k + int x = x * 2;
-x = pub int|*a| a + 1;
+x = pub int |*a| a + 1;
 
 // chaining with custom operators
 // Haskell-style
@@ -515,19 +587,19 @@ let defaultUser = {
 
 // style DSL example
 style `style` {
-  x: 100px;
-  y: 100px;
+  x: 100:px;
+  y: 100:px;
   background color: :blue;
   color: %#ff5733;
   file path: %draw(M 50 50 L 150 50 L 100 150 Z);
   custom key: addedValue;
   dynamic[key] sub[key]: dynamicValue;
 
-  @media (max width: 600px) {background color: :red;}
+  @media (max width: 600:px) {background color: :red;}
 
   @keyframes slidein {
-    `from`(transform: translateX 0%);
-    `to`(transform: translateX 100%);
+    `from`(transform: translateX 0:%);
+    `to`(transform: translateX 100:%);
   }
 
   @fontFace {
@@ -549,12 +621,12 @@ style `style` {
     flex direction: :column;
 
     .item {
-      margin: 10px;
-      padding: 5px;
+      margin: 10:px;
+      padding: 5:px;
     }
   }
 
-  animation: slideIn 3s :easeInOut :infinite :alternate;
+  animation: slideIn 3:s :easeInOut :infinite :alternate;
 }
 
 // markdown literals (with embedded code)
@@ -590,7 +662,7 @@ style `style` {
       [shortcut] [link text](https://example.com)
       ![image alt text](https://example.com/image.png)
       `pre-rendered` #obj.methodCall(arg1, arg2)
-      {style X {x: 0x10px }}!(p inline styled paragraph)
+      {style X {x: 0x10:px }}!(p inline styled paragraph)
       {/* inline code */} !{color: :red}**bold red text**
       $\a + y = z ^ 2 - \sqrt{y + x + a}$ // inline math
       !(tag .class span tag with custom attributes !(x nested?!))

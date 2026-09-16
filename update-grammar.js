@@ -132,12 +132,12 @@ let sortKeys = obj =>
   : obj;
 
 // clone grammar object
-let _this = parse(stringify(grammar));
+let grammarThis = parse(stringify(grammar));
 delete grammar.repository.define;
 
 for (let k of ['keywords', 'declaration-keywords'])
-  _this.repository.define.repository[k].match = optimize(
-    _this.repository.define.repository[k].match,
+  grammarThis.repository.define.repository[k].match = optimize(
+    grammarThis.repository.define.repository[k].match,
   ).pattern.replace(
     /(?<=\\b\(\?:).+(?=\)\\b$)/,
     p0 => regexGen(genex(p0).generate()).source,
@@ -167,7 +167,7 @@ grammar = parse(
           try {
             if (value.split(/\n/).some(line => /(?<!\\)#this\./.test(line)))
               value = value.replace(/(?<!\\)#this\.(.+$)/gm, p2 => {
-                let code = p2.replace(/(?<!\\)#this\./, '_this.');
+                let code = p2.replace(/(?<!\\)#this\./, 'grammarThis.');
                 return eval(code);
               });
             return optimize(value).pattern;
@@ -241,11 +241,11 @@ writeFileSync(
     'export default ' + jsesc(grammar, {compact: true, quotes: 'double'}),
     {
       parser: 'babel',
-      singleQuote: false,
+      singleQuote: true,
       trailingComma: 'all',
       tabWidth: 2,
       bracketSpacing: false,
-      semi: false,
+      semi: true,
     },
   ),
 );
